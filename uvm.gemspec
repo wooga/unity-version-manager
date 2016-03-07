@@ -5,8 +5,8 @@ require File.dirname(__FILE__) + "/lib/uvm/version"
 Gem::Specification.new do |gem|
   gem.name          = "wooga_uvm"
   gem.version       = Uvm::VERSION
-  gem.summary       = "TODO"
-  gem.description   = "TODO"
+  gem.summary       = "Switch between multiple versions of unity"
+  gem.description   = "A command line utility to help manage multiple versions of unity on the same machine."
   gem.authors       = ["Donald Hutchison"]
   gem.email         = ["donald.hutchison@wooga.net"]
   gem.homepage      = "https://github.com/wooga/uvm"
@@ -18,4 +18,6 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
 
   gem.required_ruby_version = "~> 2.0"
+  gem.add_runtime_dependency "thor"
+  gem.add_development_dependency "rake"
 end
