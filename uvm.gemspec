@@ -9,7 +9,7 @@ Gem::Specification.new do |gem|
   gem.description   = "A command line utility to help manage multiple versions of unity on the same machine."
   gem.authors       = ["Donald Hutchison"]
   gem.email         = ["donald.hutchison@wooga.net"]
-  gem.homepage      = "https://github.com/wooga/uvm"
+  gem.homepage      = "https://github.com/wooga/unity-version-manager"
   gem.license       = "MIT"
 
   gem.files         = Dir["{**/}{.*,*}"].select{ |path| File.file?(path) && path !~ /^pkg/ }
