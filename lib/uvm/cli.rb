@@ -17,7 +17,7 @@ module UVM
     def list
       installed = Lib.list
       current = Lib.current
-      puts installed.map {|i| current.include?(i) ? i + " [active]" : i }
+      puts installed.map {|i| (!current.nil? and current.include?(i)) ? i + " [active]" : i }
     end
 
     desc "use VERSION", "Use specific version of unity"
@@ -42,7 +42,12 @@ module UVM
       puts "Using #{version} : #{UNITY_LINK} -> #{desired_version}"
     end
 
-
+    desc "clear", "Remove the link so you can install a new version without overwriting"
+    def clear
+      if File.symlink?(UNITY_LINK)
+        FileUtils.rm(UNITY_LINK)
+      end
+    end
 
     desc "detect", "Find which version of unity was used to generate the project in current dir"
     def detect
