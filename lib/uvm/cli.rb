@@ -8,6 +8,11 @@ module UVM
 
   class CLI < Thor
 
+    def initialize args, local_options, config
+      super(args, local_options, config)
+      ensure_link
+    end
+
     desc "list", "list unity versions available"
     def list
       installed = Lib.list
@@ -31,17 +36,13 @@ module UVM
         exit
       end
 
-      #Current unity dir isn't a symlink and needs to be renamed
-      if !File.symlink?(UNITY_LINK) and File.directory?(UNITY_LINK)
-        new_dir_name = File.join(UNITY_INSTALL_LOCATION,"Unity"+Lib.current)
-        FileUtils.mv(UNITY_LINK, new_dir_name)
-      end
-
       FileUtils.rm(UNITY_LINK) if File.exists? UNITY_LINK
       FileUtils.ln_s(desired_version, UNITY_LINK, :force => true)
 
       puts "Using #{version} : #{UNITY_LINK} -> #{desired_version}"
     end
+
+
 
     desc "detect", "Find which version of unity was used to generate the project in current dir"
     def detect
@@ -61,6 +62,20 @@ module UVM
         puts Lib.current
       else
         puts "No unity version detected"
+      end
+    end
+
+    desc "launch", "Launch the current version of unity"
+    def launch
+      exec "open #{UNITY_LINK}/Unity.app"
+    end
+
+    private
+    def ensure_link
+      if !File.symlink?(UNITY_LINK) and File.directory?(UNITY_LINK)
+        new_dir_name = File.join(UNITY_INSTALL_LOCATION,"Unity"+Lib.current)
+        FileUtils.mv(UNITY_LINK, new_dir_name)
+        FileUtils.ln_s(new_dir_name, UNITY_LINK, :force => true)
       end
     end
   end
