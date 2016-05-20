@@ -1,6 +1,6 @@
 require 'thor'
 require 'fileutils'
-
+require 'wooget/util/misc'
 module UVM
   UNITY_LINK='/Applications/Unity'
   UNITY_CONTENTS="#{UNITY_LINK}/Unity.app/Contents"
@@ -70,9 +70,12 @@ module UVM
       end
     end
 
-    desc "launch", "Launch the current version of unity"
-    def launch
-      exec "open #{UNITY_LINK}/Unity.app"
+    desc "launch [PATH=pwd] [PLATFORM=android]", "Launch the current version of unity"
+    def launch project_path=File.expand_path(Dir.pwd), platform="android"
+      project_str = ""
+      project_str = "-projectPath '#{project_path}'" if Wooget::Util.is_a_unity_project_dir(project_path)
+
+      exec "open #{UNITY_LINK}/Unity.app --args -buildTarget #{platform} #{project_str}"
     end
 
     private
