@@ -27,7 +27,7 @@ module UVM
         exit
       end
 
-      desired_version = File.join(UNITY_INSTALL_LOCATION,"Unity"+version)
+      desired_version = File.join(UNITY_INSTALL_LOCATION,"Unity-"+version)
 
       unless Dir.exists? desired_version
         puts "Version #{version} isn't available "
@@ -81,7 +81,7 @@ module UVM
     private
     def ensure_link
       if !File.symlink?(UNITY_LINK) and File.directory?(UNITY_LINK)
-        new_dir_name = File.join(UNITY_INSTALL_LOCATION,"Unity"+Lib.current)
+        new_dir_name = File.join(UNITY_INSTALL_LOCATION,"Unity-"+Lib.current)
         FileUtils.mv(UNITY_LINK, new_dir_name)
         FileUtils.ln_s(new_dir_name, UNITY_LINK, :force => true)
       end
@@ -92,13 +92,13 @@ module UVM
     def self.current
       plist_path = File.join(UNITY_CONTENTS,"Info.plist")
       if File.exists? plist_path
-        `/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' #{plist_path}`.split("f").first
+        `/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' #{plist_path}`
       end
     end
 
     def self.list
-      installed = `find #{UNITY_INSTALL_LOCATION} -name "Unity*" -type d -maxdepth 1`.lines
-      installed.map{|u| u.match(version_regex){|m| m[1]} }
+      installed = `find #{UNITY_INSTALL_LOCATION} -name "Unity-*" -type d -maxdepth 1`.lines
+      installed.select{|u| !u.match(version_regex).nil? }.map{|u| u.match(version_regex){|m| m[1]} }
     end
 
     def self.version_regex
