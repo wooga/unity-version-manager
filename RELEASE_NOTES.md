@@ -1,7 +1,10 @@
-# 0.3.2
+# 1.0.0
+* ![CHANGE] File lookup pattern
+
+### 0.3.2
 * ![IMPROVE] version will match unity version `major.minor.patchfpatch` like `5.6.0f1`
 
-# 0.3.1
+### 0.3.1
 * ![NEW] Homebrew release 
 
 ## 0.1.0
