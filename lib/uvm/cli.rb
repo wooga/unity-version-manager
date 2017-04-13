@@ -102,7 +102,7 @@ module UVM
     end
 
     def self.version_regex
-      /(\d+\.\d+\.\d+$)/
+      /(\d+\.\d+\.\d+(f\d+)?)/
     end
   end
 end
