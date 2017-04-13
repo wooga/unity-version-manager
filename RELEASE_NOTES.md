@@ -1,3 +1,6 @@
+# 0.3.2
+* ![IMPROVE] version will match unity version `major.minor.patchfpatch` like `5.6.0f1`
+
 # 0.3.1
 * ![NEW] Homebrew release 
 
