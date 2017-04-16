@@ -1,3 +1,5 @@
+require 'plist'
+
 module Uvm
   
   UNITY_INSTALL_LOCATION='/Applications'
@@ -77,13 +79,14 @@ module Uvm
       plist_path = File.join(UNITY_CONTENTS,"Info.plist")
       
       if File.exists? plist_path
-        return `/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' #{plist_path}`.strip
+        plist = Plist::parse_xml(plist_path)
+        return plist['CFBundleVersion']
       end
       ""
     end
 
     protected
-    
+
     def version_regex
       /(\d+\.\d+\.\d+((f|p)\d+)?)$/
     end
