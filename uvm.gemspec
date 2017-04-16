@@ -20,7 +20,19 @@ Gem::Specification.new do |gem|
   gem.required_ruby_version = "~> 2.0"
   gem.add_runtime_dependency "thor"
   gem.add_runtime_dependency "wooga_wooget"
-  gem.add_development_dependency "rake"
-  gem.add_development_dependency "pry-byebug"
+  gem.add_runtime_dependency "plist", "~> 3.2"
 
+  gem.add_runtime_dependency "docopt", "~> 0.5"
+
+  gem.add_development_dependency "bundler", "~> 1.10"
+  gem.add_development_dependency "rake", "~> 10.0"
+  gem.add_development_dependency "ZenTest"
+  gem.add_development_dependency "rspec"
+  gem.add_development_dependency "rspec-autotest"
+  gem.add_development_dependency "rspec-temp_dir"
+  gem.add_development_dependency "codeclimate-test-reporter", "~> 1.0.0"
+  gem.add_development_dependency "climate_control"
+  gem.add_development_dependency "resona"
+
+  gem.add_development_dependency "pry-byebug"
 end
