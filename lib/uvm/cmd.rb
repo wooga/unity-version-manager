@@ -23,7 +23,10 @@ module Uvm
       versions.map {|u| current.eql?(u) ? u + ' [active]' : u}
     end
 
-    
+    # Sets link to specified unity version.
+    # Raise error when version parameter is not in form of major.minor.path(p|f)level
+    # or specified version is not installed.
+
     def use version: :latest, **options
       unless version =~ version_regex
         raise "Invalid format '#{version}' - please try a version in format `x.x.x(f|p)x`"
@@ -38,6 +41,9 @@ module Uvm
       FileUtils.ln_s(desired_version, UNITY_LINK, :force => true)
     end
 
+    # Clears current link to active unity
+    # Raise error when no unity version is activated 
+
     def clear **options
       unless File.exist? UNITY_LINK
         raise "Invalid operation - no version active"
@@ -45,6 +51,8 @@ module Uvm
 
       FileUtils.rm_f UNITY_LINK
     end
+
+    # Detects Unity version in current project
 
     def detect **options
       versions_file = File.absolute_path File.join("ProjectSettings","ProjectVersion.txt")
@@ -62,6 +70,9 @@ module Uvm
       raise "Invalid operation - could not detect project"
     end
 
+    # returns current activated unity version
+    # returns empty string when no version is activated
+
     def current **options
       plist_path = File.join(UNITY_CONTENTS,"Info.plist")
       
@@ -72,6 +83,7 @@ module Uvm
     end
 
     protected
+    
     def version_regex
       /(\d+\.\d+\.\d+((f|p)\d+)?)$/
     end
