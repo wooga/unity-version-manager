@@ -7,7 +7,7 @@ module Uvm
   UNITY_CONTENTS="#{UNITY_LINK}/Unity.app/Contents"
   
   
-  class Cmd    
+  class Uvm    
 
     def initialize
       ensure_link

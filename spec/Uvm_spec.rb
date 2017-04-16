@@ -2,7 +2,7 @@ require_relative "spec_helper"
 require "rspec/temp_dir"
 require "fileutils"
 
-RSpec.describe Uvm::Cmd do
+RSpec.describe Uvm::Uvm do
   
   include_context "uses temp dir"
 

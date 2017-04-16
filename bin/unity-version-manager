@@ -41,5 +41,3 @@ rescue Docopt::Exit => e
   puts e.message
   exit
 end
-
-Lanyard.execute options
