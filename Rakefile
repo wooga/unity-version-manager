@@ -1,6 +1,14 @@
 # # #
 # Get gemspec info
 
+require "bundler/gem_tasks"
+require "rspec/core/rake_task"
+
+RSpec::Core::RakeTask.new(:spec)
+task :default => :spec do
+  `bundle exec codeclimate-test-reporter`
+end
+
 gemspec_file = Dir['*.gemspec'].first
 gemspec = eval File.read(gemspec_file), binding, gemspec_file
 info = "#{gemspec.name} | #{gemspec.version} | " \
