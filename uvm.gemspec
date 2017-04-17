@@ -7,21 +7,18 @@ Gem::Specification.new do |gem|
   gem.version       = Uvm::VERSION
   gem.summary       = "Switch between multiple versions of unity"
   gem.description   = "A command line utility to help manage multiple versions of unity on the same machine."
-  gem.authors       = ["Donald Hutchison"]
-  gem.email         = ["donald.hutchison@wooga.net"]
+  gem.authors       = ["Donald Hutchison", "Manfred Endres"]
+  gem.email         = ["donald.hutchison@wooga.net", "manfred.endres@wooga.net"]
   gem.homepage      = "https://github.com/wooga/unity-version-manager"
   gem.license       = "MIT"
 
-  gem.files         = Dir["{**/}{.*,*}"].select{ |path| File.file?(path) && path !~ /^pkg/ }
+  gem.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features|pkg)/}) }
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib"]
 
   gem.required_ruby_version = "~> 2.0"
-  gem.add_runtime_dependency "thor"
-  gem.add_runtime_dependency "wooga_wooget"
   gem.add_runtime_dependency "plist", "~> 3.2"
-
   gem.add_runtime_dependency "docopt", "~> 0.5"
 
   gem.add_development_dependency "bundler", "~> 1.10"
@@ -33,6 +30,5 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency "codeclimate-test-reporter", "~> 1.0.0"
   gem.add_development_dependency "climate_control"
   gem.add_development_dependency "resona"
-
   gem.add_development_dependency "pry-byebug"
 end

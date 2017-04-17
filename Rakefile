@@ -25,7 +25,6 @@ task :gem do
   print "  "; sh "gem build #{gemspec_file}"
   FileUtils.mkdir_p 'pkg'
   FileUtils.mv "#{gemspec.name}-#{gemspec.version}.gem", 'pkg'
-  puts; sh %{gem install --no-document pkg/#{gemspec.name}-#{gemspec.version}.gem}
 end
 
 
