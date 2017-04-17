@@ -36,3 +36,30 @@ desc "#{gemspec.name} | IRB"
 task :irb do
   sh "irb -I ./lib -r #{gemspec.name.gsub '-','/'}"
 end
+
+desc "create github release"
+task :github_release => :gem do
+  name = "#{gemspec.name}-#{gemspec.version}"
+  access_token = JSON.parse(File.open(File.expand_path("~/.wooget")).read)["credentials"]["github_token"]
+
+  #create github release
+  puts "Preparing github release #{name}"
+  git_url = `git remote get-url origin`.chomp.chomp ".git"
+  url = git_url.split(":").last
+  repo_name = url.split('/').last(2).join("/")
+
+  client = Octokit::Client.new access_token: access_token
+
+  release_options = {
+    draft: true,
+    name: gemspec.version,
+    body: "Release #{gemspec.version}"
+  }
+
+  release = client.create_release repo_name, name, release_options
+  puts "uploading assets"
+  client.upload_asset release.url, "pkg/#{name}", {content_type: "application/x-gzip" }
+  puts "publishing.."
+  client.update_release release.url, {draft: false}
+  puts "done"
+end
