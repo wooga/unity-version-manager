@@ -61,8 +61,13 @@ module Uvm
         c = @version_manager.current
         @version_manager.use version: v
         STDOUT.puts "Update active Unity version old: #{c} new: #{v}"
-      rescue => e
+      rescue ArgumentError => e
         abort e.message
+      rescue => e
+        STDERR.puts "Version #{v} isn't available"
+        STDERR.puts "Available versions are:"
+        STDERR.puts @version_manager.list
+        exit 1
       end
     end
 

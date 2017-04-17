@@ -113,14 +113,14 @@ RSpec.describe Uvm::Uvm do
     context "when version parameter is invalid" do
       let(:options) {{version: "invalid1.2.3xx"}}
 
-      it "throws runtime error" do
-        expect{subject}.to raise_error(/Invalid format '.*' - please try .*/)
+      it "throws argument error" do
+        expect{subject}.to raise_error( ArgumentError, /Invalid format '.*' - please try .*/)
       end
     end
 
     context "when version is not available" do
       it "throws runtime error" do
-        expect{subject}.to raise_error(/Invalid version '.*' - version is not available/)
+        expect{subject}.to raise_error( RuntimeError, /Invalid version '.*' - version is not available/)
       end
     end
 
@@ -146,6 +146,16 @@ RSpec.describe Uvm::Uvm do
         it "sets new link" do
           subject
           expect(File.readlink(Uvm::UNITY_LINK)).to include("Unity-1.0.0f1")
+        end
+      end
+
+      context "and version is active" do
+        include_context "mock a unity installation" do
+          let (:unity_version) {"1.0.0f1"}
+        end
+
+        it "throws argument error" do
+          expect{subject}.to raise_error( ArgumentError, /Invalid version '.*' - version is already active/)
         end
       end
 
@@ -178,7 +188,7 @@ RSpec.describe Uvm::Uvm do
 
     context "when no unity version is activated" do
       it "throws runtime error" do
-        expect{subject}.to raise_error(/Invalid operation - no version active/)
+        expect{subject}.to raise_error(RuntimeError, /Invalid operation - no version active/)
       end
     end
   end
@@ -205,7 +215,7 @@ RSpec.describe Uvm::Uvm do
     context "when working dir contains no unity project" do
       it "throws runtime error"  do
         Dir.chdir(temp_dir) {|_|
-          expect{subject}.to raise_error("Invalid operation - could not detect project")
+          expect{subject}.to raise_error(RuntimeError, "Invalid operation - could not detect project")
         }
       end
     end
@@ -221,7 +231,7 @@ RSpec.describe Uvm::Uvm do
 
       it "throws runtime error"  do
         Dir.chdir(temp_dir) {|_|
-          expect{subject}.to raise_error("Invalid operation - could not detect project version")
+          expect{subject}.to raise_error(RuntimeError, "Invalid operation - could not detect project version")
         }
       end
     end

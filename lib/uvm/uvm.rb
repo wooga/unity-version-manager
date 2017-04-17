@@ -29,7 +29,11 @@ module Uvm
 
     def use version: :latest, **options
       unless version =~ version_regex
-        raise "Invalid format '#{version}' - please try a version in format `x.x.x(f|p)x`"
+        raise ArgumentError, "Invalid format '#{version}' - please try a version in format `x.x.x(f|p)x`"
+      end
+
+      if current.eql? version
+        raise ArgumentError, "Invalid version '#{version}' - version is already active"
       end
 
       unless list.include? version
