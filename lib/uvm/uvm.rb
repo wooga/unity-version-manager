@@ -18,15 +18,9 @@ module Uvm
     
     def list **options
       pattern = File.join UNITY_INSTALL_LOCATION, "Unity-*"
-      versions = Dir.glob(pattern)
-      #puts versions
-      versions = versions.select{|u| !u.match(version_regex).nil? }
-      #puts versions
-      versions = versions.map{|u| u.match(version_regex){|m| m[1]} }
-      #puts versions
+      versions = Dir.glob(pattern).select{|u| !u.match(version_regex).nil? }.map{|u| u.match(version_regex){|m| m[1]} }
       current = current(**options)
       versions.map {|u| current.eql?(u) ? u + ' [active]' : u}
-      versions
     end
 
     # Sets link to specified unity version.
