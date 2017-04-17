@@ -2,17 +2,6 @@ require_relative "spec_helper"
 require "rspec/temp_dir"
 require "fileutils"
 
-RSpec.describe Uvm do
-  describe "#dispatch" do
-    let(:command) {}
-    let(:options) {}
-
-    subject {described_class.dispatch options}
-
-
-  end
-end
-
 RSpec.describe Uvm::Uvm do
   
   include_context "uses temp dir"

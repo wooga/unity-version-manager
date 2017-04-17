@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 require_relative "uvm/version"
-require_relative "uvm/cli"
 require_relative "uvm/uvm"
 require 'docopt'
 
@@ -42,6 +41,7 @@ module Uvm
   def self.dispatch options
     if options['current']
       begin
+        puts @version_manager
         current = @version_manager.current
         STDOUT.puts current
       rescue => e
