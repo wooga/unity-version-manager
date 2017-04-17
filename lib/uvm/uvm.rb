@@ -92,12 +92,17 @@ module Uvm
 
     def launch project_path: File.expand_path(Dir.pwd), platform: "android", **options
       project_str = ""
-      project_str = "-projectPath '#{project_path}'" if Wooget::Util.is_a_unity_project_dir(project_path)
+      project_str = "-projectPath '#{project_path}'" if is_a_unity_project_dir? project_path
 
       exec "open #{UNITY_LINK}/Unity.app --args -buildTarget #{platform} #{project_str}"
     end
 
     protected
+
+    def is_a_unity_project_dir? path
+      contents = Dir[File.join(path, "*")].map { |c| File.basename(c) }
+      contents.include?("Assets") and contents.include?("ProjectSettings")
+    end
 
     def version_regex
       /(\d+\.\d+\.\d+((f|p)\d+)?)$/

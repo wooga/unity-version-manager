@@ -287,7 +287,7 @@ RSpec.describe Uvm::Uvm do
       include_context "launch Unity"
 
       before :each do
-        allow(Wooget::Util).to receive(:is_a_unity_project_dir).and_return(true)
+        allow(cmd).to receive(:is_a_unity_project_dir?).and_return(true)
       end
 
       it "appends project path to Unity invoke command" do
