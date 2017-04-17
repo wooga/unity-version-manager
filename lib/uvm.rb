@@ -16,6 +16,7 @@ Usage:
   #{command_name} use <version>
   #{command_name} clear
   #{command_name} detect
+  #{command_name} launch [<project-path>] [<platform>]
   #{command_name} version
   #{command_name} (-h | --help)
   #{command_name} --version
@@ -90,6 +91,14 @@ module Uvm
       end
     end
 
+    if options['launch']
+      o = {}
+      o.merge!({:project_path => options['<project-path>']}) if options['<project-path>']
+      o.merge!({:platform => options['<platform>']}) if options['<platform>']
+      
+      @version_manager.launch **o
+    end
+
     if options['version'] || options['--version']
       STDOUT.puts VERSION
     end
@@ -104,6 +113,6 @@ if __FILE__==$0
     STDERR.puts e.message
     exit 1
   end
-
+  STDOUT.puts options
   Uvm.dispatch options 
 end

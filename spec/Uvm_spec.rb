@@ -258,4 +258,50 @@ RSpec.describe Uvm::Uvm do
       it { is_expected.to be_empty }
     end
   end
+
+  RSpec.shared_context "launch Unity" do
+
+    include_context "mock a unity installation"
+
+    it "launches active unity" do
+      expect(cmd).to receive(:exec)
+      subject
+    end
+
+    it "passes platform arguments" do
+      expect(cmd).to receive(:exec).with(/--args -buildTarget android/)
+      subject
+    end
+
+  end
+
+  describe "#launch" do
+    let(:project_path) {temp_dir}
+    let(:platform) {"android"}
+
+    let(:options) {{project_path: project_path, platform: platform}}
+
+    subject {cmd.launch(**options)}
+
+    context "when `project_path` is a Unity project" do
+      include_context "launch Unity"
+
+      before :each do
+        allow(Wooget::Util).to receive(:is_a_unity_project_dir).and_return(true)
+      end
+
+      it "appends project path to Unity invoke command" do
+        expect(cmd).to receive(:exec).with(/-projectPath '#{project_path}'/)
+        subject
+      end
+    end
+
+    context "when `project_path` is not a Unity project" do
+      include_context "launch Unity"
+      it "leaves out project path" do
+        expect(cmd).not_to receive(:exec).with(/-projectPath '#{project_path}'/)
+        subject
+      end
+    end
+  end
 end
