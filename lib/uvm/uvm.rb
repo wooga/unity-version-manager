@@ -6,13 +6,11 @@ module Uvm
   UNITY_LINK="#{UNITY_INSTALL_LOCATION}/Unity"
   UNITY_CONTENTS="#{UNITY_LINK}/Unity.app/Contents"
   
-  
-  class Uvm    
+  class Uvm
 
     def initialize
       ensure_link
     end
-
 
     # returns a list of installed unity version in the form of
     # major.minor.path(p|f)level
@@ -20,9 +18,15 @@ module Uvm
     
     def list **options
       pattern = File.join UNITY_INSTALL_LOCATION, "Unity-*"
-      versions = Dir.glob(pattern).select{|u| !u.match(version_regex).nil? }.map{|u| u.match(version_regex){|m| m[1]} }
+      versions = Dir.glob(pattern)
+      #puts versions
+      versions = versions.select{|u| !u.match(version_regex).nil? }
+      #puts versions
+      versions = versions.map{|u| u.match(version_regex){|m| m[1]} }
+      #puts versions
       current = current(**options)
       versions.map {|u| current.eql?(u) ? u + ' [active]' : u}
+      versions
     end
 
     # Sets link to specified unity version.

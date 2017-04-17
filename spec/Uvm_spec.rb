@@ -2,6 +2,17 @@ require_relative "spec_helper"
 require "rspec/temp_dir"
 require "fileutils"
 
+RSpec.describe Uvm do
+  describe "#dispatch" do
+    let(:command) {}
+    let(:options) {}
+
+    subject {described_class.dispatch options}
+
+
+  end
+end
+
 RSpec.describe Uvm::Uvm do
   
   include_context "uses temp dir"
@@ -59,6 +70,10 @@ RSpec.describe Uvm::Uvm do
 
       it { is_expected.not_to be_empty }
 
+      it "contains all installed versions" do
+        expect(subject.size).to eql 1
+      end
+
       it "contains installed unity version" do
         expect(subject).to include(unity_version)
       end
@@ -71,6 +86,10 @@ RSpec.describe Uvm::Uvm do
 
       it "contains installed unity versions" do
         expect(subject).to match_array(unity_version)
+      end
+
+      it "contains all installed versions" do
+        expect(subject.size).to eql 2
       end
     end
 
