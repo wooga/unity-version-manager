@@ -43,6 +43,7 @@ module Uvm
       desired_version = File.join(UNITY_INSTALL_LOCATION,"Unity-"+version)
       FileUtils.rm_f(UNITY_LINK) if File.exists? UNITY_LINK
       FileUtils.ln_s(desired_version, UNITY_LINK, :force => true)
+      desired_version
     end
 
     # Clears current link to active unity

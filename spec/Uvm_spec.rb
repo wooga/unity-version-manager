@@ -147,6 +147,10 @@ RSpec.describe Uvm::Uvm do
           subject
           expect(File.readlink(Uvm::UNITY_LINK)).to include("Unity-1.0.0f1")
         end
+
+        it "returns path to active version" do
+          expect(subject).to eql File.join(Uvm::UNITY_INSTALL_LOCATION, "Unity-1.0.0f1")
+        end
       end
 
       context "and version is active" do

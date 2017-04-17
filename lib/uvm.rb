@@ -59,8 +59,8 @@ module Uvm
       v = options['<version>']
       begin
         c = @version_manager.current
-        @version_manager.use version: v
-        STDOUT.puts "Update active Unity version old: #{c} new: #{v}"
+        new_path = @version_manager.use version: v
+        STDOUT.puts "Using #{v} : #{UNITY_LINK} -> #{new_path}"
       rescue ArgumentError => e
         abort e.message
       rescue => e
