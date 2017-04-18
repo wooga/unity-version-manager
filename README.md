@@ -25,11 +25,29 @@ gem install wooga_uvm
 ```bash
 
 Commands:
-  uvm current         # Print the current version in use
-  uvm detect          # Find which version of unity was used to generate the project in current dir
-  uvm help [COMMAND]  # Describe available commands or one specific command
-  uvm list            # list unity versions available
-  uvm use VERSION     # Use specific version of unity
+  Usage:
+  uvm current
+  uvm list
+  uvm use <version>
+  uvm clear
+  uvm detect
+  uvm launch [<project-path>] [<platform>]
+  uvm version
+  uvm (-h | --help)
+  uvm --version
+  
+Options:
+--version         print version
+-h, --help        show this help message and exit
+
+Commands:
+clear             Remove the link so you can install a new version without overwriting
+current           Print the current version in use
+detect            Find which version of unity was used to generate the project in current dir
+help              Describe available commands or one specific command
+launch            Launch the current version of unity
+list              list unity versions available
+use               Use specific version of unity
 
 ```
 
