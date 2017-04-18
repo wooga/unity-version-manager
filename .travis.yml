@@ -1,20 +1,10 @@
 sudo: false
 language: ruby
 
-script: bundle exec ruby spec/uvm_spec.rb
-
 rvm:
 - 2.3.0
 - 2.2
 - 2.1
 - 2.0
-- ruby-head
-- rbx-2
-- jruby-head
-- jruby-9000
 
-cache:
-- bundler
-
-# matrix:
-#   fast_finish: true
+before_install: gem install bundler -v 1.14.3
