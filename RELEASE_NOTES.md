@@ -1,3 +1,14 @@
+## 1.1.0
+* ![REMOVE] [wooget](https://github.com/wooga/wooget) dependency (not breaking)
+* ![ADD] `is_a_unity_project_dir?` copy from [wooget](https://github.com/wooga/wooget)
+* ![ADD] test specs
+* ![ADD] travis build setup
+* ![ADD] codeclimate integration
+* ![IMPROVE] command-line interface (use docopts cli string instead of thor)
+* ![IMPROVE] split in and output from core logic
+* ![IMPROVE] use `stderr` for diagnostic and error output
+* ![UPDATE] gem dependencies
+
 # 1.0.0
 * ![CHANGE] File lookup pattern
 
