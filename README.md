@@ -2,7 +2,7 @@
 
 A script that just manipulates a link to the current unity version to save a small amount of sanity
 
-[![Build Status](https://travis-ci.org/wooga/unity-version-manager.svg?branch=master)](https://travis-ci.org/wooga/unity-version-manager)[![license](https://img.shields.io/github/license/wooga/unity-version-manager.svg?style=flat-square)]()[![GitHub release](https://img.shields.io/github/release/wooga/unity-version-manager.svg?style=flat-square)]()
+[![Travis](https://img.shields.io/travis/wooga/unity-version-manager.svg?style=flat-square)](https://travis-ci.org/wooga/unity-version-manager)[![Code Climate](https://img.shields.io/codeclimate/github/wooga/unity-version-manager.svg?style=flat-square)](https://codeclimate.com/github/wooga/unity-version-manager)[![Code Climate](https://img.shields.io/codeclimate/coverage/github/wooga/unity-version-manager.svg?style=flat-square)](https://codeclimate.com/github/wooga/unity-version-manager/coverage)[![Code Climate](https://img.shields.io/codeclimate/issues/github/wooga/unity-version-manager.svg?style=flat-square)](https://codeclimate.com/github/wooga/unity-version-manager/issues)[![license](https://img.shields.io/github/license/wooga/unity-version-manager.svg?style=flat-square)](https://github.com/wooga/unity-version-manager/blob/master/Licence.md)[![GitHub release](https://img.shields.io/github/release/wooga/unity-version-manager.svg?style=flat-square)](https://github.com/wooga/unity-version-manager/releases)
 
 ## Setup
 
