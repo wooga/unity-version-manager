@@ -3,6 +3,9 @@
 
 require "bundler/gem_tasks"
 require "rspec/core/rake_task"
+require "json"
+require 'octokit'
+require 'httpclient'
 
 RSpec::Core::RakeTask.new(:spec)
 task :default => :spec do
@@ -55,9 +58,9 @@ task :github_release => :gem do
     body: "Release #{gemspec.version}"
   }
 
-  release = client.create_release repo_name, name, release_options
+  release = client.create_release repo_name, gemspec.version, release_options
   puts "uploading assets"
-  client.upload_asset release.url, "pkg/#{name}", {content_type: "application/x-gzip" }
+  client.upload_asset release.url, "pkg/#{name}.gem", {content_type: "application/x-gzip" }
   puts "publishing.."
   client.update_release release.url, {draft: false}
   puts "done"
