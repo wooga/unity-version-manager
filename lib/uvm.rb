@@ -38,8 +38,20 @@ DOCOPT
 module Uvm
   @version_manager = Uvm.new
 
-  def self.dispatch options
-    if options['current']
+  class CLIDispatch
+    def initialize version_manager, options
+      @version_manager = version_manager
+      @options = options
+    end
+
+    def dispatch
+      @options.each_pair do |key, value|
+        method_name = "dispatch_#{key}"
+        self.public_send(method_name) if self.respond_to? method_name
+      end
+    end
+
+    def dispatch_current
       begin
         puts @version_manager
         current = @version_manager.current
@@ -49,22 +61,22 @@ module Uvm
       end
     end
 
-    if options['list']
+    def dispatch_list
       l = @version_manager.list
       STDERR.puts "Installed Unity versions:"
       STDERR.puts "None" if l.empty?
       STDOUT.puts l
     end
 
-    if options['use']
-      v = options['<version>']
+    def dispatch_use
+      v = @options['<version>']
       begin
         c = @version_manager.current
         new_path = @version_manager.use version: v
         STDOUT.puts "Using #{v} : #{UNITY_LINK} -> #{new_path}"
       rescue ArgumentError => e
         abort e.message
-      rescue => e
+      rescue
         STDERR.puts "Version #{v} isn't available"
         STDERR.puts "Available versions are:"
         STDERR.puts @version_manager.list
@@ -72,7 +84,7 @@ module Uvm
       end
     end
 
-    if options['clear']
+    def dispatch_clear
       begin
         c = @version_manager.current
         @version_manager.clear
@@ -82,7 +94,7 @@ module Uvm
       end
     end
 
-    if options['detect']
+    def dispatch_detect
       begin
         version = @version_manager.detect
         STDOUT.puts version
@@ -91,28 +103,34 @@ module Uvm
       end
     end
 
-    if options['launch']
+    def dispatch_launch
       o = {}
       o.merge!({:project_path => options['<project-path>']}) if options['<project-path>']
       o.merge!({:platform => options['<platform>']}) if options['<platform>']
       
-      @version_manager.launch **o
+      @version_manager.launch(**o)
     end
 
-    if options['version'] || options['--version']
+    def dispatch_version
       STDOUT.puts VERSION
     end
+  end
+
+  def self.dispatch options
+    d = CLIDispatch.new Uvm.new, options
+    d.dispatch()
   end
 end
 
 if __FILE__==$0
   options = nil
   begin
-    options = Docopt::docopt(doc)
+    options = Docopt::docopt(doc, version:Uvm::VERSION, help:true)
   rescue Docopt::Exit => e
     STDERR.puts e.message
     exit 1
   end
-  STDOUT.puts options
+  
+  options = options.delete_if { |key, value| !value }
   Uvm.dispatch options 
 end
