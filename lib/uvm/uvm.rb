@@ -27,7 +27,7 @@ module Uvm
     # Raise error when version parameter is not in form of major.minor.path(p|f)level
     # or specified version is not installed.
 
-    def use version: :latest, **options
+    def use version: :latest, **_options
       unless version =~ version_regex
         raise ArgumentError, "Invalid format '#{version}' - please try a version in format `x.x.x(f|p)x`"
       end
@@ -41,7 +41,7 @@ module Uvm
       end
 
       desired_version = File.join(UNITY_INSTALL_LOCATION,"Unity-"+version)
-      FileUtils.rm_f(UNITY_LINK) if File.exists? UNITY_LINK
+      FileUtils.rm_f(UNITY_LINK) if File.exist? UNITY_LINK
       FileUtils.ln_s(desired_version, UNITY_LINK, :force => true)
       desired_version
     end
@@ -49,7 +49,7 @@ module Uvm
     # Clears current link to active unity
     # Raise error when no unity version is activated 
 
-    def clear **options
+    def clear **_options
       unless File.exist? UNITY_LINK
         raise "Invalid operation - no version active"
       end
@@ -59,12 +59,12 @@ module Uvm
 
     # Detects Unity version in current project
 
-    def detect **options
+    def detect **_options
       versions_file = File.absolute_path File.join("ProjectSettings","ProjectVersion.txt")
-      if File.exists? versions_file
+      if File.exist? versions_file
         content = ""
         File.open(versions_file) {|f| content = f.read }
-        match_data = content.match /m_EditorVersion: (.*)/
+        match_data = content.match(/m_EditorVersion: (.*)/)
         if match_data and match_data.length > 1
           return match_data[1]
         else
@@ -78,10 +78,10 @@ module Uvm
     # returns current activated unity version
     # returns empty string when no version is activated
 
-    def current **options
+    def current **_options
       plist_path = File.join(UNITY_CONTENTS,"Info.plist")
       
-      if File.exists? plist_path
+      if File.exist? plist_path
         plist = Plist::parse_xml(plist_path)
         return plist['CFBundleVersion']
       end
@@ -90,7 +90,7 @@ module Uvm
 
     # launch active unity with project path and platform
 
-    def launch project_path: File.expand_path(Dir.pwd), platform: "android", **options
+    def launch project_path: File.expand_path(Dir.pwd), platform: "android", **_options
       project_str = ""
       project_str = "-projectPath '#{project_path}'" if is_a_unity_project_dir? project_path
 

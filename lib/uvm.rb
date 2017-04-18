@@ -45,7 +45,7 @@ module Uvm
     end
 
     def dispatch
-      @options.each_pair do |key, value|
+      @options.each_key do |key|
         method_name = "dispatch_#{key}"
         self.public_send(method_name) if self.respond_to? method_name
       end
@@ -71,7 +71,6 @@ module Uvm
     def dispatch_use
       v = @options['<version>']
       begin
-        c = @version_manager.current
         new_path = @version_manager.use version: v
         STDOUT.puts "Using #{v} : #{UNITY_LINK} -> #{new_path}"
       rescue ArgumentError => e
@@ -131,6 +130,6 @@ if __FILE__==$0
     exit 1
   end
   
-  options = options.delete_if { |key, value| !value }
+  options = options.delete_if { |_key, value| !value }
   Uvm.dispatch options 
 end
