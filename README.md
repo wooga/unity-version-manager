@@ -2,7 +2,7 @@
 
 A script that just manipulates a link to the current unity version to save a small amount of sanity
 
-[![Build Status](https://travis-ci.org/wooga/unity-version-manager.svg?branch=master)](https://travis-ci.org/wooga/unity-version-manager)[![license](https://img.shields.io/github/license/wooga/unity-version-manager.svg?style=flat-square)]()[![GitHub release](https://img.shields.io/github/release/wooga/unity-version-manager.svg?style=flat-square)]()[![GitHub release](https://img.shields.io/github/release/wooga/unity-version-manager.svg?style=flat-square)]()
+[![Build Status](https://travis-ci.org/wooga/unity-version-manager.svg?branch=master)](https://travis-ci.org/wooga/unity-version-manager)[![license](https://img.shields.io/github/license/wooga/unity-version-manager.svg?style=flat-square)]()[![GitHub release](https://img.shields.io/github/release/wooga/unity-version-manager.svg?style=flat-square)]()
 
 ## Setup
 

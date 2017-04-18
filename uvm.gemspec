@@ -31,4 +31,6 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency "climate_control", "~> 0.1"
   gem.add_development_dependency "resona", "~> 0.2"
   gem.add_development_dependency "pry-byebug", "~> 3.4"
+  gem.add_development_dependency "octokit", "~> 4.3"
+  gem.add_development_dependency "httpclient", "2.8.1"
 end
