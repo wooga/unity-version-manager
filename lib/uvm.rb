@@ -21,7 +21,6 @@ module Uvm
 
     def dispatch_current
       begin
-        puts @version_manager
         current = @version_manager.current
         STDOUT.puts current
       rescue => e
@@ -76,10 +75,6 @@ module Uvm
       o.merge!({:platform => options['<platform>']}) if options['<platform>']
       
       @version_manager.launch(**o)
-    end
-
-    def dispatch_version
-      STDOUT.puts VERSION
     end
   end
 

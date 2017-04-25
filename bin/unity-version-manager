@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
-require_relative "uvm/version"
-require_relative "uvm"
+require "uvm/version"
+require "uvm"
 require 'docopt'
 
 command_name = File.basename(__FILE__)

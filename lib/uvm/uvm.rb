@@ -1,4 +1,5 @@
 require 'plist'
+require 'fileutils'
 
 module Uvm
   
