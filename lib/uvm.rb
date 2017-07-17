@@ -13,16 +13,23 @@ module Uvm
     end
 
     def dispatch
+      raise "No options provided" if @options.nil? or @options.empty?
+
       @options.each_key do |key|
         method_name = "dispatch_#{key}"
-        self.public_send(method_name) if self.respond_to? method_name
+        if self.respond_to? method_name
+          self.public_send(method_name) 
+          return
+        end
       end
+
+      raise "Unknown command"
     end
 
     def dispatch_current
       begin
         current = @version_manager.current
-        STDOUT.puts current
+        $stdout.puts current
       rescue => e
         abort e.message
       end
@@ -30,22 +37,22 @@ module Uvm
 
     def dispatch_list
       l = @version_manager.list
-      STDERR.puts "Installed Unity versions:"
-      STDERR.puts "None" if l.empty?
-      STDOUT.puts l
+      $stderr.puts "Installed Unity versions:"
+      $stderr.puts "None" if l.empty?
+      $stdout.puts l
     end
 
     def dispatch_use
       v = @options['<version>']
       begin
         new_path = @version_manager.use version: v
-        STDOUT.puts "Using #{v} : #{UNITY_LINK} -> #{new_path}"
+        $stdout.puts "Using #{v} : #{UNITY_LINK} -> #{new_path}"
       rescue ArgumentError => e
         abort e.message
       rescue
-        STDERR.puts "Version #{v} isn't available"
-        STDERR.puts "Available versions are:"
-        STDERR.puts @version_manager.list
+        $stderr.puts "Version #{v} isn't available"
+        $stderr.puts "Available versions are:"
+        $stderr.puts @version_manager.list
         exit 1
       end
     end
@@ -54,7 +61,7 @@ module Uvm
       begin
         c = @version_manager.current
         @version_manager.clear
-        STDOUT.puts "Clear active Unity version old: #{c}"
+        $stdout.puts "Clear active Unity version old: #{c}"
       rescue => e
         abort e.message
       end
@@ -63,7 +70,7 @@ module Uvm
     def dispatch_detect
       begin
         version = @version_manager.detect
-        STDOUT.puts version
+        $stdout.puts version
       rescue => e
         abort e.message
       end
