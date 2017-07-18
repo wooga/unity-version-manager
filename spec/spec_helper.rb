@@ -9,6 +9,7 @@ require "plist"
 require "uvm"
 require "uvm/uvm"
 require "brew/tap"
+require "brew/cask"
 
 def mock_unity_app bundle_version, base_path, app_name="Unity", as_link=false
   link_name = app_name

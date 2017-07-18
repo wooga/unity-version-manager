@@ -8,8 +8,7 @@ module Brew
       Open3.popen3("brew tap") {|i,o,e,t|
         taps = o.read.chomp.lines.map { |i| i.chomp }
       }
-      puts tap_name
-      puts taps
+      
       taps.include? tap_name
     end
 
