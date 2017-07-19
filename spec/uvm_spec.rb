@@ -293,4 +293,79 @@ RSpec.describe Uvm::Uvm do
       end
     end
   end
+
+  describe "#versions" do
+    let(:tap) {instance_double Brew::Tap, include?: false, add:false }
+    let(:cask) {instance_double Brew::Cask, search: [] }
+  
+    let(:subject) {described_class.new tap:tap, cask:cask}
+    
+    it "should not be nil" do
+      expect(subject.versions).not_to be_nil
+    end
+
+    it "should respond to #each" do
+      expect(subject.versions).to respond_to(:each)
+    end
+
+    it "adds the wooga/unityversions tap when not added" do
+      allow(tap).to receive(:include?).with("wooga/unityversions").and_return false
+      expect(tap).to receive(:add).with("wooga/unityversions")
+
+      subject.versions
+    end
+
+    let(:cask_out) {
+      [
+        "unity",
+        "astah-community",
+        "couchbase-server-community",
+        "dbeaver-community",
+        "unity-android-support-for-editor",
+        "unity-android-support-for-editor@2017.1.0b7",
+        "unity-android-support-for-editor@2017.1.0f3",
+        "unity-android-support-for-editor@5.6.0p2",
+        "unity-android-support-for-editor@5.6.2f1",
+        "unity-download-assistant",
+        "unity-download-assistant@5.6.0p2",
+        "unity-download-assistant@5.6.1f1",
+        "unity-download-assistant@5.6.1p1",
+        "unity-download-assistant@5.6.2f1",
+        "unity-ios-support-for-editor",
+        "unity-ios-support-for-editor@2017.1.0b7",
+        "unity-ios-support-for-editor@2017.1.0f3",
+        "unity-ios-support-for-editor@5.6.1f1",
+        "unity-ios-support-for-editor@5.6.1p1",
+        "unity-ios-support-for-editor@5.6.2f1",
+        "unity-linux-support-for-editor",
+        "unity-linux-support-for-editor@5.6.1f1",
+        "unity-linux-support-for-editor@5.6.1p1",
+        "unity-linux-support-for-editor@5.6.2f1",
+        "unity-standard-assets",
+        "unity-standard-assets@2017.1.0b7",
+        "unity-standard-assets@5.6.1f1",
+        "unity-standard-assets@5.6.1p1",
+        "unity-standard-assets@5.6.2f1",
+        "unity-web-player",
+        "unity-webgl-support-for-editor@5.6.0p2",
+        "unity-webgl-support-for-editor@5.6.1f1",
+        "unity-windows-support-for-editor",
+        "unity-windows-support-for-editor@2017.1.0b7",
+        "unity-windows-support-for-editor@5.6.1p1",
+        "unity-windows-support-for-editor@5.6.2f1",
+        "unity@5.5.1f3",
+        "unity@2017.1.0p2",
+        "unity@5.4.1p3",
+        "younity"
+      ]
+    }
+
+    context "when casks are available" do
+      it "returns list of unity versions" do
+        allow(cask).to receive(:search).with("unity").and_return(cask_out)
+
+        expect(subject.versions).to include("5.5.1f3", "2017.1.0p2", "5.4.1p3")
+      end
+    end
+  end
 end

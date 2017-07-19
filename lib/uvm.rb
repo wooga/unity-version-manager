@@ -2,6 +2,7 @@
 
 require_relative "uvm/version"
 require_relative "uvm/uvm"
+require "set"
 
 module Uvm
   @version_manager = Uvm.new
@@ -82,6 +83,37 @@ module Uvm
       o.merge!({:platform => options['<platform>']}) if options['<platform>']
       
       @version_manager.launch(**o)
+    end
+
+    def dispatch_versions
+      l = @version_manager.versions
+      i = @version_manager.list mark_active:false
+      l = (l.to_set - i.to_set)
+
+      $stderr.puts "Available Unity versions:"
+      $stderr.puts "None" if l.empty?
+      $stdout.puts l.to_a
+    end
+
+    def dispatch_install           
+      @version_manager.install **create_install_opts
+    end
+
+    def dispatch_uninstall            
+      @version_manager.uninstall **create_install_opts
+    end
+
+    private
+
+    def create_install_opts
+      opts = {
+        version: @options['<version>'],
+        ios: (@options['--ios'] || @options['--mobile'] || @options['--all']),
+        android: (@options['--android'] || @options['--mobile'] || @options['--all']),
+        webgl: (@options['--webgl'] || @options['--mobile'] || @options['--all']),
+        linux: (@options['--linux'] || @options['--desktop'] || @options['--all']),
+        windows: (@options['--windows'] || @options['--desktop'] || @options['--all'])
+      }
     end
   end
 

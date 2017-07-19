@@ -6,16 +6,29 @@ module Brew
     def search pattern
       results = []
 
-      Open3.popen3("brew cask search", pattern) {|i,o,e,t|
+      Open3.popen3("brew cask search #{pattern}") {|i,o,e,t|
         results = o.read.chomp.lines.map { |i| i.chomp }
       }
 
       results.select {|item| !item.start_with? "==>" }
     end
 
-    def install name
-      Open3.popen3("brew cask install", name) {|i,o,e,t|
+    def list
+      results = []
+
+      Open3.popen3("brew cask search #{pattern}") {|i,o,e,t|
+        results = o.read.chomp.lines.map { |i| i.chomp }
       }
+
+      results
+    end
+
+    def install *names
+      exec("brew cask install #{names * ' '}")
+    end
+
+    def uninstall *names
+      exec("brew cask uninstall #{names * ' '}")
     end
   end
 end

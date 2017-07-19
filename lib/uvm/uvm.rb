@@ -1,5 +1,7 @@
 require 'plist'
 require 'fileutils'
+require 'brew/cask'
+require 'brew/tap'
 
 module Uvm
   
@@ -9,18 +11,22 @@ module Uvm
   
   class Uvm
 
-    def initialize
+    attr_reader :tap, :cask
+
+    def initialize tap: nil, cask: nil
       ensure_link
+      @tap = tap.nil? ? Brew::Tap.new : tap
+      @cask = cask.nil? ? Brew::Cask.new : cask
     end
 
     # returns a list of installed unity version in the form of
     # major.minor.path(p|f)level
     # if no unity versions are installed returns an empty list
     
-    def list **options
+    def list mark_active: true, **options
       pattern = File.join UNITY_INSTALL_LOCATION, "Unity-*"
       versions = Dir.glob(pattern).select{|u| !u.match(version_regex).nil? }.map{|u| u.match(version_regex){|m| m[1]} }
-      current = current(**options)
+      current = mark_active ? current(**options) : ""
       versions.map {|u| current.eql?(u) ? u + ' [active]' : u}
     end
 
@@ -96,6 +102,53 @@ module Uvm
       project_str = "-projectPath '#{project_path}'" if is_a_unity_project_dir? project_path
 
       exec "open #{UNITY_LINK}/Unity.app --args -buildTarget #{platform} #{project_str}"
+    end
+
+    # list available versions to download
+
+    def versions **options
+      unless tap.include? "wooga/unityversions"
+        tap.add "wooga/unityversions"
+      end
+      cask.search("unity").select {|cask| cask.match /unity@/}.map{|cask| cask.split("@")[1]}
+    end
+
+    # install unity via brew cask
+
+    def install version: :latest, ios:false, android:false, webgl:false, linux:false, windows:false, **options
+      unless tap.include? "wooga/unityversions"
+        tap.add "wooga/unityversions"
+      end
+
+      to_install = ["unity@#{version}"]
+      to_install << "unity-ios-support-for-editor@#{version}" if ios
+      to_install << "unity-android-support-for-editor@#{version}" if android
+      to_install << "unity-webgl-support-for-editor@#{version}" if webgl
+      to_install << "unity-linux-support-for-editor@#{version}" if linux
+      to_install << "unity-windows-support-for-editor@#{version}" if windows
+
+      cask.install(*to_install)
+    end
+
+    # uninstall unity via brew cask
+
+    def uninstall version: :latest, ios:false, android:false, webgl:false, linux:false, windows:false, **options
+      unless tap.include? "wooga/unityversions"
+        tap.add "wooga/unityversions"
+      end
+
+      installed = cask.list.select {|cask| cask.include? "@#{version}"}
+
+      to_uninstall = []
+      to_uninstall << "unity-ios-support-for-editor@#{version}" if ios
+      to_uninstall << "unity-android-support-for-editor@#{version}" if android
+      to_uninstall << "unity-webgl-support-for-editor@#{version}" if webgl
+      to_uninstall << "unity-linux-support-for-editor@#{version}" if linux
+      to_uninstall << "unity-windows-support-for-editor@#{version}" if windows
+
+      to_uninstall = installed if to_uninstall.empty?
+
+      cask.uninstall(*to_uninstall)
     end
 
     protected

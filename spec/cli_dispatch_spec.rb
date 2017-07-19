@@ -45,7 +45,7 @@ RSpec.describe Uvm::CLIDispatch do
         
         let(:options) {
           {
-            "install" => true,
+            "disrupt" => true,
             "<version>" => "some version"
           }
         }

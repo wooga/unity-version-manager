@@ -13,9 +13,12 @@ Usage:
   #{command_name} current
   #{command_name} list
   #{command_name} use <version>
+  #{command_name} install <version> (([--android] [--ios] [--webgl] | [--mobile]) ([--linux] [--windows] | [--desktop]) | [-a | --all])
+  #{command_name} uninstall <version> ([--android] [--ios] [--webgl] | [--mobile]) ([--linux] [--windows] | [--desktop])
   #{command_name} clear
   #{command_name} detect
   #{command_name} launch [<project-path>] [<platform>]
+  #{command_name} versions
   #{command_name} version
   #{command_name} (-h | --help)
   #{command_name} --version
@@ -23,6 +26,14 @@ Usage:
 Options:
 --version         print version
 -h, --help        show this help message and exit
+-a, --all         list all versions or install all support packages
+--android         install android support for editor
+--ios             install ios support for editor
+--webgl           install webgl support for editor
+--mobile          install mobile support (android, ios, webgl)
+--linux           install linux support for editor
+--windows         install windows support for editor
+--desktop         install desktop support (linux, windows)
 
 Commands:
 clear             Remove the link so you can install a new version without overwriting
@@ -31,7 +42,9 @@ detect            Find which version of unity was used to generate the project i
 help              Describe available commands or one specific command
 launch            Launch the current version of unity
 list              list unity versions available
+versions          list unity versions available to download
 use               Use specific version of unity
+install           Install specified unity version
 
 DOCOPT
 
