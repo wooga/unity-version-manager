@@ -19,8 +19,7 @@ module Uvm
       @options.each_key do |key|
         method_name = "dispatch_#{key}"
         if self.respond_to? method_name
-          self.public_send(method_name) 
-          return
+          return self.public_send(method_name)
         end
       end
 
@@ -96,17 +95,17 @@ module Uvm
     end
 
     def dispatch_install           
-      @version_manager.install **create_install_opts
+      @version_manager.install(**create_install_opts)
     end
 
     def dispatch_uninstall            
-      @version_manager.uninstall **create_install_opts
+      @version_manager.uninstall(**create_install_opts)
     end
 
     private
 
     def create_install_opts
-      opts = {
+      {
         version: @options['<version>'],
         ios: (@options['--ios'] || @options['--mobile'] || @options['--all']),
         android: (@options['--android'] || @options['--mobile'] || @options['--all']),
