@@ -1,533 +1,115 @@
 require_relative "spec_helper"
-require "rspec/temp_dir"
-require "fileutils"
 
-RSpec.describe Uvm::Uvm do
-  
-  include_context "uses temp dir"
+RSpec.describe Uvm::CLIDispatch do
 
-  let(:tap) {instance_double Brew::Tap, include?: false, add:false, ensure: false }
-  let(:cask) {instance_double Brew::Cask, search: [], list: [] }
-  
-  let(:cmd) {described_class.new tap:tap, cask:cask}
-  let(:options) { {} }
-  
-  subject {cmd}
+  let(:uvm) {double(Uvm::Uvm)}
+  let(:options) {{}}
+  let(:subject) {described_class.new uvm, options }
 
-  before(:each) {
-    stub_const("Uvm::UNITY_INSTALL_LOCATION", temp_dir)
-    stub_const("Uvm::UNITY_LINK", "#{Uvm::UNITY_INSTALL_LOCATION}/Unity")
-    stub_const("Uvm::UNITY_CONTENTS", "#{Uvm::UNITY_LINK}/Unity.app/Contents")
-  }
+  it { is_expected.not_to be_nil }
 
-  describe "#initialize" do
-    subject {cmd}
-
-    it { is_expected.not_to be_nil }
-
-    context "when unity is already installed" do
-      include_context "mock a unity installation" do
-        let(:unity_version) {"1.0.0f1"}
-        let(:linked_version) {false}
-      end
-
-      it "moves installation" do
-        subject
-        expected_install_dir = File.join(Uvm::UNITY_INSTALL_LOCATION, "Unity-#{unity_version}")
-        exists = File.exists? expected_install_dir
-        expect(exists).to be true
-      end
-
-      it "creates link" do
-        subject
-        symlink = File.symlink? Uvm::UNITY_LINK
-        expect(symlink).to be true
-      end
-
-      it "activates this version" do
-        expect(subject.current).to eql unity_version
-      end
-    end
-  end
-
-  describe "#list" do
-    subject {cmd.list(**options)}
-
-    it { is_expected.not_to be_nil }
-    it { is_expected.to respond_to(:each) }
-
-    context "when unity version is installed" do
-      
-      include_context "mock a side unity" do
-        let(:unity_version) {"1.0.0f1"}
-      end
-
-      it { is_expected.not_to be_empty }
-
-      it "contains all installed versions" do
-        expect(subject.size).to eql 1
-      end
-
-      it "contains installed unity version" do
-        expect(subject).to include(unity_version)
+  context "#dispatch" do
+    context "when options are empty" do
+      it "throws error" do
+        expect { subject.dispatch }.to raise_exception(RuntimeError, "No options provided")
       end
     end
 
-    context "when release and patch versionen are installed" do
-      include_context "mock a side unity" do
-        let(:unity_version) {["1.0.0f1", "1.0.1p3"]}
-      end
-
-      it "contains installed unity versions" do
-        expect(subject).to match_array(unity_version)
-      end
-
-      it "contains all installed versions" do
-        expect(subject.size).to eql 2
+    context "when options are nil" do
+      let(:options) {nil}
+      it "throws error" do
+        expect { subject.dispatch }.to raise_exception(RuntimeError, "No options provided")
       end
     end
 
-    context "when no unity version is installed" do
-      it { is_expected.to be_empty }
-    end
-
-    context "when unity is activated" do
-      include_context "mock a unity installation"
-
-      it "marks active version in output" do
-        expect(subject).to include(active_unity + " [active]")
-      end
-    end
-  end
-
-  describe "#use" do
-    subject {cmd.use(**options)}
-    let(:options) {{version: "1.0.0f1"}}
-
-    context "when version parameter is invalid" do
-      let(:options) {{version: "invalid1.2.3xx"}}
-
-      it "throws argument error" do
-        expect{subject}.to raise_error( ArgumentError, /Invalid format '.*' - please try .*/)
-      end
-    end
-
-    context "when version is not available" do
-      it "throws runtime error" do
-        expect{subject}.to raise_error( RuntimeError, /Invalid version '.*' - version is not available/)
-      end
-    end
-
-    context "when version is available" do
-      include_context "mock a side unity" do
-        let(:unity_version) {["1.0.0f1", "1.0.1p3"]}
-      end
-
-      context "and another unity version is active" do
-        include_context "mock a unity installation" do
-          let (:unity_version) {"2.0.0f1"}
-        end
-
-        include_context "mock a side unity" do
-          let(:unity_version) {["1.0.0f1", "1.0.1p3"]}
-        end
-
-        it "removes old link" do
-          subject
-          expect(File.readlink(Uvm::UNITY_LINK)).not_to include("Unity-2.0.0f1") 
-        end
-
-        it "sets new link" do
-          subject
-          expect(File.readlink(Uvm::UNITY_LINK)).to include("Unity-1.0.0f1")
-        end
-
-        it "returns path to active version" do
-          expect(subject).to eql File.join(Uvm::UNITY_INSTALL_LOCATION, "Unity-1.0.0f1")
-        end
-      end
-
-      context "and version is active" do
-        include_context "mock a unity installation" do
-          let (:unity_version) {"1.0.0f1"}
-        end
-
-        it "throws argument error" do
-          expect{subject}.to raise_error( ArgumentError, /Invalid version '.*' - version is already active/)
-        end
-      end
-
-      context "and no unity version is active" do
-        it "sets new link" do
-          subject
-          expect(File.readlink(Uvm::UNITY_LINK)).to include("Unity-1.0.0f1")
-        end
-      end
-    end
-  end
-
-  describe "#clear" do
-    subject {cmd.clear(**options)}
-
-    context "when a unity version is activated" do
-      
-      include_context "mock a unity installation"
-      it "removes old link" do
-        subject
-        expect(File.exists?(Uvm::UNITY_LINK)).not_to be true
-      end
-
-      context "and current version is not a symlink"  do
-        include_context "mock a unity installation" do
-            let (:linked_version) {false}
-        end
-      end
-    end
-
-    context "when no unity version is activated" do
-      it "throws runtime error" do
-        expect{subject}.to raise_error(RuntimeError, /Invalid operation - no version active/)
-      end
-    end
-  end
-
-  describe "#detect" do
-    subject {cmd.detect(**options)}
-
-    context "when working directory contains unity project" do
-      let!(:project_version) {
-        version = "1.0.0f1"
-        project_path = File.join(temp_dir, "ProjectSettings")
-        FileUtils.mkdir(project_path)
-        File.open(File.join(project_path, "ProjectVersion.txt"), "w") {|f| f.write "m_EditorVersion: #{version}"}
-        version
-      }
-
-      it "returns project editor version" do
-        Dir.chdir(temp_dir) {|_|
-          expect(subject).to eql(project_version)
+    context "with valid options" do
+      context "and multiple commands in options" do
+        let(:options) {
+          {
+            "clear" => true,
+            "use" => true,
+            "<version>" => "some version"
+          }
         }
-      end
-    end
 
-    context "when working dir contains no unity project" do
-      it "throws runtime error"  do
-        Dir.chdir(temp_dir) {|_|
-          expect{subject}.to raise_error(RuntimeError, "Invalid operation - could not detect project")
-        }
-      end
-    end
-
-    context "when project version file is missing/corupted" do
-      let!(:project_version) {
-        version = "1.0.0f1"
-        project_path = File.join(temp_dir, "ProjectSettings")
-        FileUtils.mkdir(project_path)
-        File.open(File.join(project_path, "ProjectVersion.txt"), "w") {|f| f.write "sddjsdsdj"}
-        version
-      }
-
-      it "throws runtime error"  do
-        Dir.chdir(temp_dir) {|_|
-          expect{subject}.to raise_error(RuntimeError, "Invalid operation - could not detect project version")
-        }
-      end
-    end
-  end
-
-  describe "#current" do
-    subject {cmd.current(**options)}
-
-    context "when a unity version is in use" do
-      include_context "mock a unity installation"
-
-      it { is_expected.not_to be_empty }
-
-      it "returns active unity version" do
-        expect(subject).to eql(active_unity)
-      end
-    end
-
-    context "when no unity version is in use" do
-      it { is_expected.to be_empty }
-    end
-  end
-
-  RSpec.shared_context "launch Unity" do
-
-    include_context "mock a unity installation"
-
-    it "launches active unity" do
-      expect(cmd).to receive(:exec)
-      subject
-    end
-
-    it "passes platform arguments" do
-      expect(cmd).to receive(:exec).with(/--args -buildTarget android/)
-      subject
-    end
-
-  end
-
-  describe "#launch" do
-    let(:project_path) {temp_dir}
-    let(:platform) {"android"}
-
-    let(:options) {{project_path: project_path, platform: platform}}
-
-    subject {cmd.launch(**options)}
-
-    context "when `project_path` is a Unity project" do
-      include_context "launch Unity"
-
-      before :each do
-        allow(cmd).to receive(:is_a_unity_project_dir?).and_return(true)
-      end
-
-      it "appends project path to Unity invoke command" do
-        expect(cmd).to receive(:exec).with(/-projectPath '#{project_path}'/)
-        subject
-      end
-    end
-
-    context "when `project_path` is not a Unity project" do
-      include_context "launch Unity"
-      it "leaves out project path" do
-        expect(cmd).not_to receive(:exec).with(/-projectPath '#{project_path}'/)
-        subject
-      end
-    end
-  end
-
-  describe "#install" do
-    
-    it "ensures wooga/unityversions tap is available" do
-      expect(tap).to receive(:ensure).with("wooga/unityversions")
-      allow(cask).to receive(:install)
-
-      subject.install version: "test"
-    end
-
-    context "when version is not installed" do
-
-      it "calls install with correct cask name" do
-        version = "1.2.3f1"
-        expected_params = [subject.cask_name_for_type_version("unity", version)]
-        expect(cask).to receive(:install).with(*expected_params)
-
-        subject.install version: version
-      end
-
-      context "with single support option" do
-        [:ios, :android, :webgl, :linux, :windows].each {|i|
-          it "calls install with support casks #{i}" do
-            version = "1.2.3f1"
-            expected_params = [
-              subject.cask_name_for_type_version("unity", version),
-              subject.cask_name_for_type_version(i, version)
-            ]
-            expect(cask).to receive(:install).with(*expected_params)
-
-            subject.install version: version, i => true
-          end
-        }
-      end
-
-      context "with all support options" do
-        it "calls install with all support casks" do
-          version = "1.2.3f1"
-          expected_params = [
-            subject.cask_name_for_type_version("unity", version),
-            subject.cask_name_for_type_version("ios", version),
-            subject.cask_name_for_type_version("android", version),
-            subject.cask_name_for_type_version("webgl", version),
-            subject.cask_name_for_type_version("linux", version),
-            subject.cask_name_for_type_version("windows", version),
-          ]
-          expect(cask).to receive(:install).with(*expected_params)
-
-          subject.install version: version, ios: true, android:true, webgl:true, linux:true, windows: true
-        end
-      end
-    end
-
-    context "when version is installed" do
-      it "filters unity cask from install call" do
-        version = "1.2.3f1"
-        allow(cask).to receive(:list).and_return ["unity@#{version}"]
-        expected_params = [subject.cask_name_for_type_version("unity", version)]
-        expect(cask).not_to receive(:install)
-
-        subject.install version: version
-      end
-
-      context "and support version is installed" do
-        it "filters support version cask from install call" do
-          version = "1.2.3f1"
-          allow(cask).to receive(:list).and_return [
-            subject.cask_name_for_type_version("unity", version),
-            subject.cask_name_for_type_version("webgl", version),
-            subject.cask_name_for_type_version("windows", version),
-          ]
-
-          expected_params = [
-            subject.cask_name_for_type_version("ios", version),
-            subject.cask_name_for_type_version("android", version),
-            subject.cask_name_for_type_version("linux", version),
-          ]
-          expect(cask).to receive(:install).with(*expected_params)
-
-          subject.install version: version, ios: true, android:true, webgl:true, linux:true, windows: true
-        end
-      end
-    end
-  end
-
-  describe "#uninstall" do
-    it "ensures wooga/unityversions tap is available" do
-      expect(tap).to receive(:ensure).with("wooga/unityversions")
-      allow(cask).to receive(:uninstall)
-
-      subject.uninstall version: "test"
-    end
-
-    context "when version is installed" do
-      context "and no options are set" do
-        context "and no support packages are installed" do
-          it "calls uninstall with unity version" do
-            version = "1.2.3f1"
-            list = [
-              subject.cask_name_for_type_version("unity", version)
-            ]
-
-            allow(cask).to receive(:list).and_return list
-
-            expect(cask).to receive(:uninstall).with(*list)
-
-            subject.uninstall version: version
-          end
-        end
-
-        context "and support packages are installed" do
-          it "calls uninstall with all casks for version" do
-            version = "1.2.3f1"
-            list = [
-              subject.cask_name_for_type_version("unity", version),
-              subject.cask_name_for_type_version("ios", version),
-              subject.cask_name_for_type_version("android", version),
-              subject.cask_name_for_type_version("webgl", version),
-              subject.cask_name_for_type_version("linux", version),
-              subject.cask_name_for_type_version("windows", version),
-            ]
-
-            allow(cask).to receive(:list).and_return list
-
-            expect(cask).to receive(:uninstall).with(*list)
-
-            subject.uninstall version: version
-          end
+        it "breaks after first dispatch" do
+          expect(uvm).to receive(:current)
+          expect(uvm).to receive(:clear)
+          expect(uvm).not_to receive(:use)
+          
+          subject.dispatch
         end
       end
 
-      context "and single support option is set" do
-        [:ios, :android, :webgl, :linux, :windows].each {|i|
-          it "calls uninstall with support casks #{i}" do
-            version = "1.2.3f1"
-            allow(cask).to receive(:list).and_return [
-              subject.cask_name_for_type_version("unity", version),
-              subject.cask_name_for_type_version(i, version)
-            ]
-
-            expected_params = [
-              subject.cask_name_for_type_version(i, version)
-            ]
-
-            expect(cask).to receive(:uninstall).with(*expected_params)
-
-            subject.uninstall version: version, i => true
-          end
-        }
-      end
-    end
-
-    context "when version is not installed" do
-      it "will do nothing" do
-        version = "1.2.3f1"
-        expect(cask).not_to receive(:uninstall)
-        subject.uninstall version: version
-      end
-    end
-
-  end
-
-  describe "#versions" do
+      context "and unknown command in options" do
         
-    it "should not be nil" do
-      expect(subject.versions).not_to be_nil
+        let(:options) {
+          {
+            "disrupt" => true,
+            "<version>" => "some version"
+          }
+        }
+
+        it "throws error" do
+          expect { subject.dispatch }.to raise_exception(RuntimeError, "Unknown command")
+        end
+      end
+    end    
+  end
+
+  RSpec.shared_context "install/uninstall" do
+    let(:options) {{"<version>" => "1.2.3f1"}}
+    
+    it "calls uvm install/uninstall with version" do
+      expect(uvm).to receive(delegate_method).with(version: "1.2.3f1")
+      subject.public_send(dispatch_method_name)
     end
+    
+    [:ios, :android, :webgl, :linux, :windows].each do |i|
+      context "with option --#{i}" do
+        it "calls uvm install/uninstall  with version and platform support option #{i}" do
+          options = {
+            "<version>" => "1.2.3f1",
+            "--#{i}" => true
+          }
 
-    it "should respond to #each" do
-      expect(subject.versions).to respond_to(:each)
-    end
-
-    it "adds the wooga/unityversions tap when not added" do
-      allow(tap).to receive(:include?).with("wooga/unityversions").and_return false
-      expect(tap).to receive(:add).with("wooga/unityversions")
-
-      subject.versions
-    end
-
-    let(:cask_out) {
-      [
-        "unity",
-        "astah-community",
-        "couchbase-server-community",
-        "dbeaver-community",
-        "unity-android-support-for-editor",
-        "unity-android-support-for-editor@2017.1.0b7",
-        "unity-android-support-for-editor@2017.1.0f3",
-        "unity-android-support-for-editor@5.6.0p2",
-        "unity-android-support-for-editor@5.6.2f1",
-        "unity-download-assistant",
-        "unity-download-assistant@5.6.0p2",
-        "unity-download-assistant@5.6.1f1",
-        "unity-download-assistant@5.6.1p1",
-        "unity-download-assistant@5.6.2f1",
-        "unity-ios-support-for-editor",
-        "unity-ios-support-for-editor@2017.1.0b7",
-        "unity-ios-support-for-editor@2017.1.0f3",
-        "unity-ios-support-for-editor@5.6.1f1",
-        "unity-ios-support-for-editor@5.6.1p1",
-        "unity-ios-support-for-editor@5.6.2f1",
-        "unity-linux-support-for-editor",
-        "unity-linux-support-for-editor@5.6.1f1",
-        "unity-linux-support-for-editor@5.6.1p1",
-        "unity-linux-support-for-editor@5.6.2f1",
-        "unity-standard-assets",
-        "unity-standard-assets@2017.1.0b7",
-        "unity-standard-assets@5.6.1f1",
-        "unity-standard-assets@5.6.1p1",
-        "unity-standard-assets@5.6.2f1",
-        "unity-web-player",
-        "unity-webgl-support-for-editor@5.6.0p2",
-        "unity-webgl-support-for-editor@5.6.1f1",
-        "unity-windows-support-for-editor",
-        "unity-windows-support-for-editor@2017.1.0b7",
-        "unity-windows-support-for-editor@5.6.1p1",
-        "unity-windows-support-for-editor@5.6.2f1",
-        "unity@5.5.1f3",
-        "unity@2017.1.0p2",
-        "unity@5.4.1p3",
-        "younity"
-      ]
-    }
-
-    context "when casks are available" do
-      it "returns list of unity versions" do
-        allow(cask).to receive(:search).with("unity").and_return(cask_out)
-
-        expect(subject.versions).to include("5.5.1f3", "2017.1.0p2", "5.4.1p3")
+          subject = described_class.new uvm, options
+          expect(uvm).to receive(delegate_method).with(version: "1.2.3f1", i => true)
+          subject.public_send(dispatch_method_name)
+        end
       end
     end
+
+    {
+      "--mobile" => {ios: true, android: true, webgl: true},
+      "--desktop" => {linux: true, windows:true},
+      "--all" => {ios: true, android: true, webgl: true, linux: true, windows:true}
+    }.each_pair do |option, expected_options|
+
+      context "with meta option #{option}" do
+        it "calls uvm install/uninstall  with version and platform support option #{expected_options.keys}" do
+          options = {
+            "<version>" => "1.2.3f1",
+            option => true
+          }
+
+          subject = described_class.new uvm, options
+          expect(uvm).to receive(delegate_method).with(version: "1.2.3f1", **expected_options)
+          subject.public_send(dispatch_method_name)
+        end
+      end
+    end
+  end
+
+  describe "#dispatch_install" do
+    let(:dispatch_method_name) {"dispatch_install"}
+    let(:delegate_method) {:install}
+    include_context "install/uninstall"
+  end
+
+  describe "#dispatch_uninstall" do
+    let(:dispatch_method_name) {"dispatch_uninstall"}
+    let(:delegate_method) {:uninstall}
+    include_context "install/uninstall"
   end
 end
