@@ -125,7 +125,7 @@ module Uvm
 
     # install unity via brew cask
 
-    def install version: :latest, ios:false, android:false, webgl:false, linux:false, windows:false, **options
+    def install version: :latest, **support_package_options
       
       tap.ensure "wooga/unityversions"
 
@@ -133,11 +133,7 @@ module Uvm
 
       to_install = []
       to_install << cask_name_for_type_version(:unity, version)
-      to_install << cask_name_for_type_version(:ios, version) if ios
-      to_install << cask_name_for_type_version(:android, version) if android
-      to_install << cask_name_for_type_version(:webgl, version) if webgl
-      to_install << cask_name_for_type_version(:linux, version) if linux
-      to_install << cask_name_for_type_version(:windows, version) if windows
+      to_install += check_support_packages version, **support_package_options
       to_install = to_install - installed
 
       cask.install(*to_install) unless to_install.empty?
@@ -145,24 +141,23 @@ module Uvm
 
     # uninstall unity via brew cask
 
-    def uninstall version: :latest, ios:false, android:false, webgl:false, linux:false, windows:false, **options
+    def uninstall version: :latest, **support_package_options
       tap.ensure "wooga/unityversions"
 
       installed = cask.list.select {|cask| cask.include? "@#{version}"}
-
-      to_uninstall = []
-      to_uninstall << cask_name_for_type_version(:ios, version) if ios
-      to_uninstall << cask_name_for_type_version(:android, version) if android
-      to_uninstall << cask_name_for_type_version(:webgl, version) if webgl
-      to_uninstall << cask_name_for_type_version(:linux, version) if linux
-      to_uninstall << cask_name_for_type_version(:windows, version) if windows
+      to_uninstall = check_support_packages version, **support_package_options
 
       to_uninstall = installed if to_uninstall.empty?
-
       cask.uninstall(*to_uninstall) unless to_uninstall.empty?
     end
 
     protected
+
+    def check_support_packages version, **options
+      options.reduce([]) { |packages, (k,v)|
+        packages << cask_name_for_type_version(k, version) if v
+      }
+    end
 
     def is_a_unity_project_dir? path
       contents = Dir[File.join(path, "*")].map { |c| File.basename(c) }
