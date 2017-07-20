@@ -15,5 +15,9 @@ module Brew
     def add tap_name
       system "brew tap #{tap_name}"
     end
+
+    def ensure tap_name
+      add(tap_name) unless include? tap_name
+    end
   end
 end

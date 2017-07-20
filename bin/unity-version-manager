@@ -14,7 +14,7 @@ Usage:
   #{command_name} list
   #{command_name} use <version>
   #{command_name} install <version> (([--android] [--ios] [--webgl] | [--mobile]) ([--linux] [--windows] | [--desktop]) | [-a | --all])
-  #{command_name} uninstall <version> ([--android] [--ios] [--webgl] | [--mobile]) ([--linux] [--windows] | [--desktop])
+  #{command_name} uninstall <version> (([--android] [--ios] [--webgl] | [--mobile]) ([--linux] [--windows] | [--desktop]) | [-a | --all])
   #{command_name} clear
   #{command_name} detect
   #{command_name} launch [<project-path>] [<platform>]

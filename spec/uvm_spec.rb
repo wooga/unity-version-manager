@@ -6,8 +6,13 @@ RSpec.describe Uvm::Uvm do
   
   include_context "uses temp dir"
 
-  let(:cmd) {described_class.new}
+  let(:tap) {instance_double Brew::Tap, include?: false, add:false, ensure: false }
+  let(:cask) {instance_double Brew::Cask, search: [], list: [] }
+  
+  let(:cmd) {described_class.new tap:tap, cask:cask}
   let(:options) { {} }
+  
+  subject {cmd}
 
   before(:each) {
     stub_const("Uvm::UNITY_INSTALL_LOCATION", temp_dir)
@@ -294,12 +299,169 @@ RSpec.describe Uvm::Uvm do
     end
   end
 
-  describe "#versions" do
-    let(:tap) {instance_double Brew::Tap, include?: false, add:false }
-    let(:cask) {instance_double Brew::Cask, search: [] }
-  
-    let(:subject) {described_class.new tap:tap, cask:cask}
+  describe "#install" do
     
+    it "ensures wooga/unityversions tap is available" do
+      expect(tap).to receive(:ensure).with("wooga/unityversions")
+      allow(cask).to receive(:install)
+
+      subject.install version: "test"
+    end
+
+    context "when version is not installed" do
+
+      it "calls install with correct cask name" do
+        version = "1.2.3f1"
+        expected_params = [subject.cask_name_for_type_version("unity", version)]
+        expect(cask).to receive(:install).with(*expected_params)
+
+        subject.install version: version
+      end
+
+      context "with single support option" do
+        [:ios, :android, :webgl, :linux, :windows].each {|i|
+          it "calls install with support casks #{i}" do
+            version = "1.2.3f1"
+            expected_params = [
+              subject.cask_name_for_type_version("unity", version),
+              subject.cask_name_for_type_version(i, version)
+            ]
+            expect(cask).to receive(:install).with(*expected_params)
+
+            subject.install version: version, i => true
+          end
+        }
+      end
+
+      context "with all support options" do
+        it "calls install with all support casks" do
+          version = "1.2.3f1"
+          expected_params = [
+            subject.cask_name_for_type_version("unity", version),
+            subject.cask_name_for_type_version("ios", version),
+            subject.cask_name_for_type_version("android", version),
+            subject.cask_name_for_type_version("webgl", version),
+            subject.cask_name_for_type_version("linux", version),
+            subject.cask_name_for_type_version("windows", version),
+          ]
+          expect(cask).to receive(:install).with(*expected_params)
+
+          subject.install version: version, ios: true, android:true, webgl:true, linux:true, windows: true
+        end
+      end
+    end
+
+    context "when version is installed" do
+      it "filters unity cask from install call" do
+        version = "1.2.3f1"
+        allow(cask).to receive(:list).and_return ["unity@#{version}"]
+        expected_params = [subject.cask_name_for_type_version("unity", version)]
+        expect(cask).not_to receive(:install)
+
+        subject.install version: version
+      end
+
+      context "and support version is installed" do
+        it "filters support version cask from install call" do
+          version = "1.2.3f1"
+          allow(cask).to receive(:list).and_return [
+            subject.cask_name_for_type_version("unity", version),
+            subject.cask_name_for_type_version("webgl", version),
+            subject.cask_name_for_type_version("windows", version),
+          ]
+
+          expected_params = [
+            subject.cask_name_for_type_version("ios", version),
+            subject.cask_name_for_type_version("android", version),
+            subject.cask_name_for_type_version("linux", version),
+          ]
+          expect(cask).to receive(:install).with(*expected_params)
+
+          subject.install version: version, ios: true, android:true, webgl:true, linux:true, windows: true
+        end
+      end
+    end
+  end
+
+  describe "#uninstall" do
+    it "ensures wooga/unityversions tap is available" do
+      expect(tap).to receive(:ensure).with("wooga/unityversions")
+      allow(cask).to receive(:uninstall)
+
+      subject.uninstall version: "test"
+    end
+
+    context "when version is installed" do
+      context "and no options are set" do
+        context "and no support packages are installed" do
+          it "calls uninstall with unity version" do
+            version = "1.2.3f1"
+            list = [
+              subject.cask_name_for_type_version("unity", version)
+            ]
+
+            allow(cask).to receive(:list).and_return list
+
+            expect(cask).to receive(:uninstall).with(*list)
+
+            subject.uninstall version: version
+          end
+        end
+
+        context "and support packages are installed" do
+          it "calls uninstall with all casks for version" do
+            version = "1.2.3f1"
+            list = [
+              subject.cask_name_for_type_version("unity", version),
+              subject.cask_name_for_type_version("ios", version),
+              subject.cask_name_for_type_version("android", version),
+              subject.cask_name_for_type_version("webgl", version),
+              subject.cask_name_for_type_version("linux", version),
+              subject.cask_name_for_type_version("windows", version),
+            ]
+
+            allow(cask).to receive(:list).and_return list
+
+            expect(cask).to receive(:uninstall).with(*list)
+
+            subject.uninstall version: version
+          end
+        end
+      end
+
+      context "and single support option is set" do
+        [:ios, :android, :webgl, :linux, :windows].each {|i|
+          it "calls uninstall with support casks #{i}" do
+            version = "1.2.3f1"
+            allow(cask).to receive(:list).and_return [
+              subject.cask_name_for_type_version("unity", version),
+              subject.cask_name_for_type_version(i, version)
+            ]
+
+            expected_params = [
+              subject.cask_name_for_type_version(i, version)
+            ]
+
+            expect(cask).to receive(:uninstall).with(*expected_params)
+
+            subject.uninstall version: version, i => true
+          end
+        }
+      end
+    end
+
+    context "when version is not installed" do
+      it "will do nothing" do
+        version = "1.2.3f1"
+        expect(cask).not_to receive(:uninstall)
+        subject.uninstall version: version
+      end
+    end
+
+  end
+
+  describe "#versions" do
+        
     it "should not be nil" do
       expect(subject.versions).not_to be_nil
     end

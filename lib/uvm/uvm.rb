@@ -113,42 +113,53 @@ module Uvm
       cask.search("unity").select {|cask| cask.match /unity@/}.map{|cask| cask.split("@")[1]}
     end
 
+  
+    def cask_name_for_type type
+      type = "unity-#{type.to_s}-support-for-editor" unless type.to_s.eql? 'unity'
+      type.to_s
+    end
+
+    def cask_name_for_type_version type, version
+      cask_name_for_type(type) + "@" + version.to_s
+    end
+
     # install unity via brew cask
 
     def install version: :latest, ios:false, android:false, webgl:false, linux:false, windows:false, **options
-      unless tap.include? "wooga/unityversions"
-        tap.add "wooga/unityversions"
-      end
+      
+      tap.ensure "wooga/unityversions"
 
-      to_install = ["unity@#{version}"]
-      to_install << "unity-ios-support-for-editor@#{version}" if ios
-      to_install << "unity-android-support-for-editor@#{version}" if android
-      to_install << "unity-webgl-support-for-editor@#{version}" if webgl
-      to_install << "unity-linux-support-for-editor@#{version}" if linux
-      to_install << "unity-windows-support-for-editor@#{version}" if windows
+      installed = cask.list.select {|cask| cask.include? "@#{version}"}
 
-      cask.install(*to_install)
+      to_install = []
+      to_install << cask_name_for_type_version(:unity, version)
+      to_install << cask_name_for_type_version(:ios, version) if ios
+      to_install << cask_name_for_type_version(:android, version) if android
+      to_install << cask_name_for_type_version(:webgl, version) if webgl
+      to_install << cask_name_for_type_version(:linux, version) if linux
+      to_install << cask_name_for_type_version(:windows, version) if windows
+      to_install = to_install - installed
+
+      cask.install(*to_install) unless to_install.empty?
     end
 
     # uninstall unity via brew cask
 
     def uninstall version: :latest, ios:false, android:false, webgl:false, linux:false, windows:false, **options
-      unless tap.include? "wooga/unityversions"
-        tap.add "wooga/unityversions"
-      end
+      tap.ensure "wooga/unityversions"
 
       installed = cask.list.select {|cask| cask.include? "@#{version}"}
 
       to_uninstall = []
-      to_uninstall << "unity-ios-support-for-editor@#{version}" if ios
-      to_uninstall << "unity-android-support-for-editor@#{version}" if android
-      to_uninstall << "unity-webgl-support-for-editor@#{version}" if webgl
-      to_uninstall << "unity-linux-support-for-editor@#{version}" if linux
-      to_uninstall << "unity-windows-support-for-editor@#{version}" if windows
+      to_uninstall << cask_name_for_type_version(:ios, version) if ios
+      to_uninstall << cask_name_for_type_version(:android, version) if android
+      to_uninstall << cask_name_for_type_version(:webgl, version) if webgl
+      to_uninstall << cask_name_for_type_version(:linux, version) if linux
+      to_uninstall << cask_name_for_type_version(:windows, version) if windows
 
       to_uninstall = installed if to_uninstall.empty?
 
-      cask.uninstall(*to_uninstall)
+      cask.uninstall(*to_uninstall) unless to_uninstall.empty?
     end
 
     protected
