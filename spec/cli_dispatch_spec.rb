@@ -56,4 +56,60 @@ RSpec.describe Uvm::CLIDispatch do
       end
     end    
   end
+
+  RSpec.shared_context "install/uninstall" do
+    let(:options) {{"<version>" => "1.2.3f1"}}
+    
+    it "calls uvm install/uninstall with version" do
+      expect(uvm).to receive(delegate_method).with(version: "1.2.3f1")
+      subject.public_send(dispatch_method_name)
+    end
+    
+    [:ios, :android, :webgl, :linux, :windows].each do |i|
+      context "with option --#{i}" do
+        it "calls uvm install/uninstall  with version and platform support option #{i}" do
+          options = {
+            "<version>" => "1.2.3f1",
+            "--#{i}" => true
+          }
+
+          subject = described_class.new uvm, options
+          expect(uvm).to receive(delegate_method).with(version: "1.2.3f1", i => true)
+          subject.public_send(dispatch_method_name)
+        end
+      end
+    end
+
+    {
+      "--mobile" => {ios: true, android: true, webgl: true},
+      "--desktop" => {linux: true, windows:true},
+      "--all" => {ios: true, android: true, webgl: true, linux: true, windows:true}
+    }.each_pair do |option, expected_options|
+
+      context "with meta option #{option}" do
+        it "calls uvm install/uninstall  with version and platform support option #{expected_options.keys}" do
+          options = {
+            "<version>" => "1.2.3f1",
+            option => true
+          }
+
+          subject = described_class.new uvm, options
+          expect(uvm).to receive(delegate_method).with(version: "1.2.3f1", **expected_options)
+          subject.public_send(dispatch_method_name)
+        end
+      end
+    end
+  end
+
+  describe "#dispatch_install" do
+    let(:dispatch_method_name) {"dispatch_install"}
+    let(:delegate_method) {:install}
+    include_context "install/uninstall"
+  end
+
+  describe "#dispatch_uninstall" do
+    let(:dispatch_method_name) {"dispatch_uninstall"}
+    let(:delegate_method) {:uninstall}
+    include_context "install/uninstall"
+  end
 end

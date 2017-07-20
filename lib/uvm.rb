@@ -112,7 +112,7 @@ module Uvm
         webgl: (@options['--webgl'] || @options['--mobile'] || @options['--all']),
         linux: (@options['--linux'] || @options['--desktop'] || @options['--all']),
         windows: (@options['--windows'] || @options['--desktop'] || @options['--all'])
-      }
+      }.delete_if { |_key, value| !value }
     end
   end
 
