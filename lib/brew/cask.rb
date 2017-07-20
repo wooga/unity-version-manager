@@ -16,7 +16,7 @@ module Brew
     def list
       results = []
 
-      Open3.popen3("brew cask search #{pattern}") {|i,o,e,t|
+      Open3.popen3("brew cask list") { |i,o,e,t|
         results = o.read.chomp.lines.map { |i| i.chomp }
       }
 

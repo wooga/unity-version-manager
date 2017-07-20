@@ -3,13 +3,10 @@ require_relative "../spec_helper"
 RSpec.describe Brew::Cask do
   
   let(:subject) {described_class.new}
-  let(:out) {}
 
-
-  describe "#search" do
-    let(:out) {
-      stdOut = double(IO)
-      allow(stdOut).to receive(:read).and_return(["==> Exact Match","test1", "==> Partial Matches", "test2"].join("\n"))
+  let(:out) {
+    stdOut = double(IO)
+      allow(stdOut).to receive(:read).and_return(stdout)
 
       response = []
       response << double(IO)
@@ -17,40 +14,63 @@ RSpec.describe Brew::Cask do
       response << double(IO)
       response << '1'
       response
+  }
+
+  let(:stdout) {""}
+
+  describe "#search" do
+
+    let(:searchTerm) {"test"}
+
+    subject { 
+      allow(Open3).to receive(:popen3).with("brew cask search #{searchTerm}").and_yield(*out)
+      described_class.new.search searchTerm 
     }
 
+    let(:stdout) {["==> Exact Match","test1", "==> Partial Matches", "test2"].join("\n")}
+
     it "calls brew cask command" do
-      searchTerm = "test"
-      
+      subject = described_class.new
       expect(Open3).to receive(:popen3).with("brew cask search #{searchTerm}")
       subject.search searchTerm
     end
 
-    it "returns list of results" do
-      searchTerm = "test"
-      allow(Open3).to receive(:popen3).with("brew cask search #{searchTerm}").and_yield(*out)
-
-      expect(subject.search searchTerm).to be_kind_of(Array)
-    end
+    it { is_expected.not_to be_nil }
+    it { is_expected.to respond_to(:each) }
 
     it "returns matching results" do
-      searchTerm = "test"
-      allow(Open3).to receive(:popen3).with("brew cask search #{searchTerm}").and_yield(*out)
-      expect(subject.search searchTerm).to include("test1", "test2")
+      expect(subject).to include("test1", "test2")
     end
 
     it "filters matching headers" do
-      searchTerm = "test"
-      allow(Open3).to receive(:popen3).with("brew cask search #{searchTerm}").and_yield(*out)
-      expect(subject.search searchTerm).not_to include("==> Exact Match", "==> Partial Matches")
+      expect(subject).not_to include("==> Exact Match", "==> Partial Matches")
     end
   end
 
-  describe "#install" do
+  describe "#list" do
+    subject { 
+      allow(Open3).to receive(:popen3).with("brew cask list").and_yield(*out)
+      described_class.new.list
+    }
+
+    it { is_expected.not_to be_nil }
+    it { is_expected.to respond_to(:each) }
+
     it "calls brew cask command" do
-      tool = "testTool"
-      expect(Open3).to receive(:popen3).with("brew cask search #{tool}")
-      subject.search tool
+      subject = described_class.new
+      expect(Open3).to receive(:popen3).with("brew cask list")
+      subject.list
+    end
+
+    context "when cask returns values" do
+      let(:stdout) { ["test1", "test2", "test3"].join("\n") }
+
+      it { is_expected.not_to be_nil }
+      it { is_expected.to respond_to(:each) }
+
+      it "returns results" do
+        expect(subject).to include("test1", "test2", "test3")
+      end
     end
   end
 end
