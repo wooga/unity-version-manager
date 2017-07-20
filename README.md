@@ -13,32 +13,35 @@ brew tap wooga/tools
 brew install wooga/unity-version-manager
 ```
 
-_install with ruby gems_
-
-```bash
-gem install wooga_uvm
-```
-
-
 ## Usage
 
 ```bash
 
 Commands:
-  Usage:
-  uvm current
-  uvm list
-  uvm use <version>
-  uvm clear
-  uvm detect
-  uvm launch [<project-path>] [<platform>]
-  uvm version
-  uvm (-h | --help)
-  uvm --version
+uvm current
+uvm list
+uvm use <version>
+uvm install <version> (([--android] [--ios] [--webgl] | [--mobile]) ([--linux] [--windows] | [--desktop]) | [-a | --all])
+uvm uninstall <version> (([--android] [--ios] [--webgl] | [--mobile]) ([--linux] [--windows] | [--desktop]) | [-a | --all])
+uvm clear
+uvm detect
+uvm launch [<project-path>] [<platform>]
+uvm versions
+uvm version
+uvm (-h | --help)
+uvm --version
   
 Options:
 --version         print version
 -h, --help        show this help message and exit
+-a, --all         list all versions or install all support packages
+--android         install android support for editor
+--ios             install ios support for editor
+--webgl           install webgl support for editor
+--mobile          install mobile support (android, ios, webgl)
+--linux           install linux support for editor
+--windows         install windows support for editor
+--desktop         install desktop support (linux, windows)
 
 Commands:
 clear             Remove the link so you can install a new version without overwriting
@@ -47,10 +50,11 @@ detect            Find which version of unity was used to generate the project i
 help              Describe available commands or one specific command
 launch            Launch the current version of unity
 list              list unity versions available
+versions          list unity versions available to download
 use               Use specific version of unity
+install           Install specified unity version
 
 ```
-
 
 ## MIT License
 
