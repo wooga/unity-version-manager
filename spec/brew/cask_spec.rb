@@ -47,6 +47,20 @@ RSpec.describe Brew::Cask do
     end
   end
 
+  describe "#install" do
+    it "calls brew cask install with cask name" do
+      expect(subject).to receive(:exec).with("brew cask install test/test")
+      subject.install "test/test"
+    end
+  end
+
+  describe "#uninstall" do
+    it "calls brew cask uninstall with cask name" do
+      expect(subject).to receive(:exec).with("brew cask uninstall test/test")
+      subject.uninstall "test/test"
+    end
+  end
+
   describe "#list" do
     subject { 
       allow(Open3).to receive(:popen3).with("brew cask list").and_yield(*out)
