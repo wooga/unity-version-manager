@@ -106,16 +106,16 @@ module Uvm
 
     # list available versions to download
 
-    def versions **options
+    def versions **_options
       unless tap.include? "wooga/unityversions"
         tap.add "wooga/unityversions"
       end
-      cask.search("unity").select {|cask| cask.match /unity@/}.map{|cask| cask.split("@")[1]}
+      cask.search("unity").select {|cask| cask.match(/unity@/)}.map{|cask| cask.split("@")[1]}
     end
 
   
     def cask_name_for_type type
-      type = "unity-#{type.to_s}-support-for-editor" unless type.to_s.eql? 'unity'
+      type = "unity-#{type}-support-for-editor" unless type.to_s.eql? 'unity'
       type.to_s
     end
 
