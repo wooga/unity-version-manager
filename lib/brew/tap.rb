@@ -5,8 +5,8 @@ module Brew
     def include? tap_name
       taps = []
       
-      Open3.popen3("brew tap") {|i,o,e,t|
-        taps = o.read.chomp.lines.map { |i| i.chomp }
+      Open3.popen3("brew tap") {|_stdin,stdout,_stderr,_thread|
+        taps = stdout.read.chomp.lines.map { |i| i.chomp }
       }
       
       taps.include? tap_name
