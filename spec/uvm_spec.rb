@@ -1,5 +1,21 @@
 require_relative "spec_helper"
 
+RSpec.describe Uvm do
+  context "#dispatch" do
+    it "creates dispatch object" do
+      expect(Uvm::CLIDispatch).to receive(:new).and_return(instance_double(Uvm::CLIDispatch, {dispatch: true}))
+      described_class.dispatch({})
+    end
+
+    it "calls dispatch on new instance" do
+      double = instance_double(Uvm::CLIDispatch, {dispatch: true})
+      allow(Uvm::CLIDispatch).to receive(:new).and_return(double)
+      expect(double).to receive(:dispatch)
+      described_class.dispatch({})
+    end
+  end
+end
+
 RSpec.describe Uvm::CLIDispatch do
 
   let(:uvm) {double(Uvm::Uvm)}
@@ -228,6 +244,42 @@ RSpec.describe Uvm::CLIDispatch do
     end
   end
 
+  describe "#dispatch_list" do
+    include_context "mock stderr stdout"
+    let(:options) {{"list" => true}}
+
+    let(:local_versions) {
+      [
+        "1.2.3f1",
+        "1.3.0f1",
+        "1.3.1f1",
+      ]
+    }
+
+    before(:each) {
+      allow(uvm).to receive(:list).and_return(local_versions)
+    }
+
+    it "prints header" do
+      expect(stderr_double).to receive(:puts).with("Installed Unity versions:")
+      subject.dispatch
+    end
+
+    it "prints list of versions" do
+      expect(stdout_double).to receive(:puts).with(local_versions)
+      subject.dispatch
+    end
+
+    context "when versions are empty" do
+      let(:local_versions) {[]}
+
+      it "prints special message" do
+        expect(stderr_double).to receive(:puts).with("None")
+        subject.dispatch
+      end
+    end
+  end
+
   describe "#dispatch_versions" do
     include_context "mock stderr stdout"
     let(:options) {{"versions" => true}}
@@ -272,8 +324,8 @@ RSpec.describe Uvm::CLIDispatch do
 
     context "when versions are empty" do
       let(:local_versions) { remote_versions }
-      
-      it "removes local versions from remote versions" do
+
+      it "prints special message" do
         expect(stderr_double).to receive(:puts).with("None")
         subject.dispatch
       end
