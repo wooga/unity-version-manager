@@ -2,7 +2,6 @@
 
 require_relative "uvm/version"
 require_relative "uvm/uvm"
-require "set"
 
 module Uvm
   @version_manager = Uvm.new
@@ -53,7 +52,7 @@ module Uvm
         $stderr.puts "Version #{v} isn't available"
         $stderr.puts "Available versions are:"
         $stderr.puts @version_manager.list
-        exit 1
+        abort
       end
     end
 
@@ -78,8 +77,8 @@ module Uvm
 
     def dispatch_launch
       o = {}
-      o.merge!({:project_path => options['<project-path>']}) if options['<project-path>']
-      o.merge!({:platform => options['<platform>']}) if options['<platform>']
+      o.merge!({:project_path => @options['<project-path>']}) if @options['<project-path>']
+      o.merge!({:platform => @options['<platform>']}) if @options['<platform>']
       
       @version_manager.launch(**o)
     end
@@ -87,11 +86,11 @@ module Uvm
     def dispatch_versions
       l = @version_manager.versions
       i = @version_manager.list mark_active:false
-      l = (l.to_set - i.to_set)
+      l = l - i
 
       $stderr.puts "Available Unity versions:"
       $stderr.puts "None" if l.empty?
-      $stdout.puts l.to_a
+      $stdout.puts l
     end
 
     def dispatch_install           

@@ -54,6 +54,24 @@ RSpec.configure do |config|
   end
 end
 
+RSpec.shared_context "mock stderr stdout" do
+  original_stderr = $stderr
+  original_stdout = $stdout
+
+  let(:stdout_double) {instance_double(IO, "$stdout", write: true, puts: true)}
+  let(:stderr_double) {instance_double(IO, "$stderr", write: true, puts: true)}
+
+  before(:each) do
+    $stderr = stderr_double
+    $stdout = stdout_double
+  end
+  
+  after(:each) do
+    $stderr = original_stderr
+    $stdout = original_stdout
+  end
+end
+
 RSpec.shared_context "mock a unity installation" do
   include_context "uses temp dir"
   let (:unity_version) {"1.0.0f1"}
