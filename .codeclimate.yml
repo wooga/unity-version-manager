@@ -18,6 +18,8 @@ ratings:
 exclude_paths:
 - tests/
 - spec/
+- bin/
 - "*.gemspec"
+- "**/*.md"
 - Rakefile
 - Gemfile
