@@ -4,11 +4,11 @@ require 'brew/cask'
 require 'brew/tap'
 
 module Uvm
-  
+
   UNITY_INSTALL_LOCATION='/Applications'
   UNITY_LINK="#{UNITY_INSTALL_LOCATION}/Unity"
   UNITY_CONTENTS="#{UNITY_LINK}/Unity.app/Contents"
-  
+
   class Uvm
 
     attr_reader :tap, :cask
@@ -22,7 +22,7 @@ module Uvm
     # returns a list of installed unity version in the form of
     # major.minor.path(p|f)level
     # if no unity versions are installed returns an empty list
-    
+
     def list mark_active: true, **options
       pattern = File.join UNITY_INSTALL_LOCATION, "Unity-*"
       versions = Dir.glob(pattern).select{|u| !u.match(version_regex).nil? }.map{|u| u.match(version_regex){|m| m[1]} }
@@ -54,7 +54,7 @@ module Uvm
     end
 
     # Clears current link to active unity
-    # Raise error when no unity version is activated 
+    # Raise error when no unity version is activated
 
     def clear **_options
       unless File.exist? UNITY_LINK
@@ -75,7 +75,7 @@ module Uvm
         if match_data and match_data.length > 1
           return match_data[1]
         else
-          raise "Invalid operation - could not detect project version"          
+          raise "Invalid operation - could not detect project version"
         end
       end
 
@@ -87,7 +87,7 @@ module Uvm
 
     def current **_options
       plist_path = File.join(UNITY_CONTENTS,"Info.plist")
-      
+
       if File.exist? plist_path
         plist = Plist::parse_xml(plist_path)
         return plist['CFBundleVersion']
@@ -106,14 +106,29 @@ module Uvm
 
     # list available versions to download
 
-    def versions **_options
-      unless tap.include? "wooga/unityversions"
-        tap.add "wooga/unityversions"
+    def versions beta: false, patch: false, all: false, **options
+
+      version_types = []
+      if(beta || all)
+        tap.ensure("wooga/unityversions-beta")
+        version_types << 'b'
       end
-      cask.search("unity").select {|cask| cask.match(/unity@/)}.map{|cask| cask.split("@")[1]}
+
+      if patch || all
+        tap.ensure("wooga/unityversions-patch")
+        version_types << 'p'
+      end
+
+      if version_types.empty? || all
+        tap.ensure("wooga/unityversions")
+        version_types << 'f'
+      end
+
+      cask.search("unity")
+      .select {|cask| cask.match("unity@.*?(#{version_types.join('|')}).*")}
+      .map{ |cask| cask.split("@")[1]}
     end
 
-  
     def cask_name_for_type type
       type = "unity-#{type}-support-for-editor" unless type.to_s.eql? 'unity'
       type.to_s
@@ -126,8 +141,7 @@ module Uvm
     # install unity via brew cask
 
     def install version: :latest, **support_package_options
-      
-      tap.ensure "wooga/unityversions"
+      ensure_tap_for_version version
 
       installed = cask.list.select {|cask| cask.include? "@#{version}"}
 
@@ -142,7 +156,7 @@ module Uvm
     # uninstall unity via brew cask
 
     def uninstall version: :latest, **support_package_options
-      tap.ensure "wooga/unityversions"
+      ensure_tap_for_version version
 
       installed = cask.list.select {|cask| cask.include? "@#{version}"}
       to_uninstall = check_support_packages version, **support_package_options
@@ -152,6 +166,12 @@ module Uvm
     end
 
     protected
+
+    def ensure_tap_for_version(version)
+      tap.ensure "wooga/unityversions" if version.include? 'f'
+      tap.ensure "wooga/unityversions-patch" if version.include? 'p'
+      tap.ensure "wooga/unityversions-beta" if version.include? 'b'
+    end
 
     def check_support_packages version, **options
       options.reduce([]) { |packages, (k,v)|
@@ -165,7 +185,7 @@ module Uvm
     end
 
     def version_regex
-      /(\d+\.\d+\.\d+((f|p)\d+)?)$/
+      /(\d+\.\d+\.\d+((f|p|b)\d+)?)$/
     end
 
     def ensure_link

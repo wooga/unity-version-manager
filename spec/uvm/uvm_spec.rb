@@ -3,15 +3,15 @@ require "rspec/temp_dir"
 require "fileutils"
 
 RSpec.describe Uvm::Uvm do
-  
+
   include_context "uses temp dir"
 
   let(:tap) {instance_double Brew::Tap, include?: false, add:false, ensure: false }
   let(:cask) {instance_double Brew::Cask, search: [], list: [] }
-  
+
   let(:cmd) {described_class.new tap:tap, cask:cask}
   let(:options) { {} }
-  
+
   subject {cmd}
 
   before(:each) {
@@ -57,7 +57,7 @@ RSpec.describe Uvm::Uvm do
     it { is_expected.to respond_to(:each) }
 
     context "when unity version is installed" do
-      
+
       include_context "mock a side unity" do
         let(:unity_version) {"1.0.0f1"}
       end
@@ -134,7 +134,7 @@ RSpec.describe Uvm::Uvm do
 
         it "removes old link" do
           subject
-          expect(File.readlink(Uvm::UNITY_LINK)).not_to include("Unity-2.0.0f1") 
+          expect(File.readlink(Uvm::UNITY_LINK)).not_to include("Unity-2.0.0f1")
         end
 
         it "sets new link" do
@@ -170,7 +170,7 @@ RSpec.describe Uvm::Uvm do
     subject {cmd.clear(**options)}
 
     context "when a unity version is activated" do
-      
+
       include_context "mock a unity installation"
       it "removes old link" do
         subject
@@ -300,18 +300,38 @@ RSpec.describe Uvm::Uvm do
   end
 
   describe "#install" do
-    
-    it "ensures wooga/unityversions tap is available" do
-      expect(tap).to receive(:ensure).with("wooga/unityversions")
-      allow(cask).to receive(:install)
 
-      subject.install version: "test"
+    RSpec.shared_examples "ensure tap" do |parameter|
+      let(:expected_tap) {parameter}
+
+      it "ensures correct tap" do
+        expect(tap).to receive(:ensure).with(expected_tap)
+        allow(cask).to receive(:install)
+
+        subject.install version: version
+      end
+    end
+
+    let(:version) {"1.2.3f1"}
+
+    context "when version is a beta version" do
+      let(:version) {"1.2.3fb"}
+      include_examples "ensure tap", "wooga/unityversions-beta"
+    end
+
+    context "when version is a patch version" do
+      let(:version) {"1.2.3fp"}
+      include_examples "ensure tap", "wooga/unityversions-patch"
+    end
+
+    context "when version is a release version" do
+      include_examples "ensure tap", "wooga/unityversions"
     end
 
     context "when version is not installed" do
 
       it "calls install with correct cask name" do
-        version = "1.2.3f1"
+
         expected_params = [subject.cask_name_for_type_version("unity", version)]
         expect(cask).to receive(:install).with(*expected_params)
 
@@ -321,7 +341,7 @@ RSpec.describe Uvm::Uvm do
       context "with single support option" do
         [:ios, :android, :webgl, :linux, :windows].each {|i|
           it "calls install with support casks #{i}" do
-            version = "1.2.3f1"
+
             expected_params = [
               subject.cask_name_for_type_version("unity", version),
               subject.cask_name_for_type_version(i, version)
@@ -384,18 +404,37 @@ RSpec.describe Uvm::Uvm do
   end
 
   describe "#uninstall" do
-    it "ensures wooga/unityversions tap is available" do
-      expect(tap).to receive(:ensure).with("wooga/unityversions")
-      allow(cask).to receive(:uninstall)
+    let(:version) {"1.2.3f1"}
 
-      subject.uninstall version: "test"
+    RSpec.shared_examples "ensure tap" do |parameter|
+      let(:expected_tap) {parameter}
+
+      it "ensures correct tap" do
+        expect(tap).to receive(:ensure).with(expected_tap)
+        allow(cask).to receive(:uninstall)
+
+      subject.uninstall version: version
+      end
+    end
+
+    context "when version is a beta version" do
+      let(:version) {"1.2.3fb"}
+      include_examples "ensure tap", "wooga/unityversions-beta"
+    end
+
+    context "when version is a patch version" do
+      let(:version) {"1.2.3fp"}
+      include_examples "ensure tap", "wooga/unityversions-patch"
+    end
+
+    context "when version is a release version" do
+      include_examples "ensure tap", "wooga/unityversions"
     end
 
     context "when version is installed" do
       context "and no options are set" do
         context "and no support packages are installed" do
           it "calls uninstall with unity version" do
-            version = "1.2.3f1"
             list = [
               subject.cask_name_for_type_version("unity", version)
             ]
@@ -410,7 +449,6 @@ RSpec.describe Uvm::Uvm do
 
         context "and support packages are installed" do
           it "calls uninstall with all casks for version" do
-            version = "1.2.3f1"
             list = [
               subject.cask_name_for_type_version("unity", version),
               subject.cask_name_for_type_version("ios", version),
@@ -432,7 +470,6 @@ RSpec.describe Uvm::Uvm do
       context "and single support option is set" do
         [:ios, :android, :webgl, :linux, :windows].each {|i|
           it "calls uninstall with support casks #{i}" do
-            version = "1.2.3f1"
             allow(cask).to receive(:list).and_return [
               subject.cask_name_for_type_version("unity", version),
               subject.cask_name_for_type_version(i, version)
@@ -461,7 +498,70 @@ RSpec.describe Uvm::Uvm do
   end
 
   describe "#versions" do
-        
+
+    RSpec.shared_examples "ensure tap in #versions" do |expected_tap, h={}|
+      let(:expected_tap) {expected_tap}
+      let(:flags) { h }
+
+      it "ensures #{expected_tap} tap" do
+        expect(tap).to receive(:ensure).with(expected_tap)
+        allow(cask).to receive(:search).with("unity").and_return(cask_out)
+        subject.versions **flags
+      end
+    end
+
+    RSpec.shared_examples "expect version list" do |h={}|
+
+      let(:flags) {h}
+
+      before(:each) do
+        allow(cask).to receive(:search).with("unity").and_return(cask_out)
+      end
+
+      context "when casks available" do
+        it "contains at least one item" do
+          expect(subject.versions **flags).not_to be_empty
+        end
+
+        it "contains unity versions" do
+          expect(subject.versions **flags).to all(be_a_unity_version)
+        end
+
+        if h.include?(:all)
+          it "contains unity release, beta and patch versions" do
+            expect(subject.versions **flags).to include(be_a_beta_version)
+            expect(subject.versions **flags).to include(be_a_patch_version)
+            expect(subject.versions **flags).to include(be_a_release_version)
+          end
+        elsif h.include?(:beta) and h.include?(:patch)
+          it "contains unity beta and patch versions" do
+            expect(subject.versions **flags).to include(be_a_beta_version)
+            expect(subject.versions **flags).to include(be_a_patch_version)
+          end
+        elsif h.include?(:beta)
+          it "contains unity beta versions" do
+            expect(subject.versions **flags).to all(be_a_beta_version)
+          end
+        elsif h.include?(:patch)
+          it "contains unity patch versions" do
+            expect(subject.versions **flags).to all(be_a_patch_version)
+          end
+        else
+          it "contains unity release versions" do
+            expect(subject.versions **flags).to all(be_a_release_version)
+          end
+        end
+      end
+
+      context "when no casks available" do
+        let(:cask_out) {[]}
+
+        it "returns empty list" do
+          expect(subject.versions **flags).to be_empty
+        end
+      end
+    end
+
     it "should not be nil" do
       expect(subject.versions).not_to be_nil
     end
@@ -470,11 +570,53 @@ RSpec.describe Uvm::Uvm do
       expect(subject.versions).to respond_to(:each)
     end
 
-    it "adds the wooga/unityversions tap when not added" do
-      allow(tap).to receive(:include?).with("wooga/unityversions").and_return false
-      expect(tap).to receive(:add).with("wooga/unityversions")
+    context "when `beta` switch is supplied" do
+      include_examples "ensure tap in #versions", "wooga/unityversions-beta", beta: true
+      include_examples "expect version list", beta: true
+    end
 
-      subject.versions
+    context "when `patch` switch is supplied" do
+      include_examples "ensure tap in #versions", "wooga/unityversions-patch", patch: true
+      include_examples "expect version list", patch: true
+    end
+
+    context "when `all` switch is supplied" do
+      include_examples "ensure tap in #versions", "wooga/unityversions-patch", all: true
+      include_examples "ensure tap in #versions", "wooga/unityversions-beta", all: true
+      include_examples "ensure tap in #versions", "wooga/unityversions", all: true
+      include_examples "expect version list", all: true
+    end
+
+    context "when `all` and `patch` switch is supplied" do
+      include_examples "ensure tap in #versions", "wooga/unityversions-patch", all: true, patch: true
+      include_examples "ensure tap in #versions", "wooga/unityversions-beta", all: true, patch: true
+      include_examples "ensure tap in #versions", "wooga/unityversions", all: true, patch: true
+      include_examples "expect version list", all: true, patch: true
+    end
+
+    context "when `all` and `beta` switch is supplied" do
+      include_examples "ensure tap in #versions", "wooga/unityversions-patch", all: true, beta: true
+      include_examples "ensure tap in #versions", "wooga/unityversions-beta", all: true, beta: true
+      include_examples "ensure tap in #versions", "wooga/unityversions", all: true, beta: true
+      include_examples "expect version list", all: true, beta: true
+    end
+
+    context "when all switches are supplied" do
+      include_examples "ensure tap in #versions", "wooga/unityversions-patch", all: true, beta: true, patch: true
+      include_examples "ensure tap in #versions", "wooga/unityversions-beta", all: true, beta: true, patch: true
+      include_examples "ensure tap in #versions", "wooga/unityversions", all: true, beta: true, patch: true
+      include_examples "expect version list", all: true, beta: true, patch: true
+    end
+
+    context "when `beta` and `patch` switch is supplied" do
+      include_examples "ensure tap in #versions", "wooga/unityversions-patch", patch: true, beta: true
+      include_examples "ensure tap in #versions", "wooga/unityversions-beta", patch: true, beta: true
+      include_examples "expect version list", patch: true, beta: true
+    end
+
+    context "when no switch is supplied" do
+      include_examples "ensure tap in #versions", "wooga/unityversions"
+      include_examples "expect version list"
     end
 
     let(:cask_out) {
@@ -516,18 +658,13 @@ RSpec.describe Uvm::Uvm do
         "unity-windows-support-for-editor@5.6.1p1",
         "unity-windows-support-for-editor@5.6.2f1",
         "unity@5.5.1f3",
+        "unity@5.4.2b2",
+        "unity@2017.2.1b3",
         "unity@2017.1.0p2",
         "unity@5.4.1p3",
+        "unity@5.5.1f1",
         "younity"
       ]
     }
-
-    context "when casks are available" do
-      it "returns list of unity versions" do
-        allow(cask).to receive(:search).with("unity").and_return(cask_out)
-
-        expect(subject.versions).to include("5.5.1f3", "2017.1.0p2", "5.4.1p3")
-      end
-    end
   end
 end
