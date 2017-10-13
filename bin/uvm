@@ -18,11 +18,11 @@ Usage:
   #{command_name} clear
   #{command_name} detect
   #{command_name} launch [<project-path>] [<platform>]
-  #{command_name} versions
+  #{command_name} versions (([--beta] [--patch]) | [-a |--all])
   #{command_name} version
   #{command_name} (-h | --help)
   #{command_name} --version
-  
+
 Options:
 --version         print version
 -h, --help        show this help message and exit

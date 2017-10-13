@@ -1,6 +1,6 @@
 require "bundler/setup"
 require "simplecov"
-
+require "rspec"
 SimpleCov.start do
   add_filter "/spec/"
 end
@@ -96,4 +96,28 @@ RSpec.shared_context "mock a side unity" do
     end
     version
   }
+end
+
+RSpec::Matchers.define :be_a_unity_version do
+  match do |actual|
+    /(\d+\.\d+\.\d+((f|p|b)\d+)?)$/.match(actual)
+  end
+end
+
+RSpec::Matchers.define :be_a_beta_version do
+  match do |actual|
+    actual.include?('b')
+  end
+end
+
+RSpec::Matchers.define :be_a_patch_version do
+  match do |actual|
+    actual.include?('p')
+  end
+end
+
+RSpec::Matchers.define :be_a_release_version do
+  match do |actual|
+    actual.include?('f')
+  end
 end

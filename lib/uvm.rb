@@ -84,7 +84,13 @@ module Uvm
     end
 
     def dispatch_versions
-      l = @version_manager.versions
+      o = {
+        beta: @options['--beta'],
+        patch: @options['--patch'],
+        all: @options['--all']  
+      }
+
+      l = @version_manager.versions **o
       i = @version_manager.list mark_active:false
       l = l - i
 
