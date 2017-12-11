@@ -10,7 +10,7 @@ _install with brew_
 
 ```bash
 brew tap wooga/tools
-brew install wooga/unity-version-manager
+brew install unity-version-manager
 ```
 
 ## Usage
